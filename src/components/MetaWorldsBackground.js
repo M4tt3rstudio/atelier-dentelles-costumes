@@ -1,17 +1,13 @@
-// MetaWorldsBackground.jsx
-
-import "./MetaWorldsBackground.css";
-
-import React from 'react'
+import React from 'react';
+import './MetaWorldsBackground.css';
 
 const MetaWorldsBackground = () => {
   return (
-    <div className="BG-Container">
-      
-      <img src="/Background-Image.png" alt="Background" />
-      
-      </div>
-  )
-}
+    <div
+      className="BG-Container"
+      style={{ backgroundImage: `url(${process.env.PUBLIC_URL}/Background-Image.png)` }}
+    />
+  );
+};
 
-export default MetaWorldsBackground
+export default MetaWorldsBackground;
