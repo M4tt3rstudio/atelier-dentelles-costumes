@@ -432,6 +432,7 @@ ul {
 }
 
 .lightbox img {
+  position: fixed;
   max-width: 100%;
   max-height: 100%;
   width: 100%;
@@ -583,5 +584,7 @@ ul {
     height: auto;
     max-height: 100vh;
     border-radius: 0;
+    object-fit: contain;
+    
   }
 }

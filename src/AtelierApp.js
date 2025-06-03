@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
 import './AtelierApp.css';
 import { Helmet } from 'react-helmet';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -104,6 +105,8 @@ function MainApp() {
   const [selectedCategory, setSelectedCategory] = useState('toutes');
   const [lightboxImage, setLightboxImage] = useState(null);
   const [refreshBoutique, setRefreshBoutique] = useState(false);
+
+
 
   const handleConceptChange = (detail, key) => {
     const concept = concepts.find(c => c.label === key);

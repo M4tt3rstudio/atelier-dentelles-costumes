@@ -92,7 +92,7 @@ export default function FaqPage() {
       <div className="faq-map">
         <iframe
           title="Localisation Atelier"
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2624.999820937934!2d2.2922926156749985!3d48.85884407928788!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47e66fcd1aa22895%3A0x80b82c49a09865f6!2sTour%20Eiffel!5e0!3m2!1sfr!2sfr!4v1614339484835!5m2!1sfr!2sfr"
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2727.6074327975793!2d6.368167576981743!3d46.87109737113175!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x478dbb70997a4a25%3A0xcedc37e99eb4c295!2s13%20Rte%20du%20Ch%C3%A2teau%2C%2025300%20La%20Cluse-et-Mijoux!5e0!3m2!1sen!2sfr!4v1748945110357!5m2!1sen!2sfr"
           width="100%"
           height="300"
           style={{ border: 0, borderRadius: '0.5rem' }}
