@@ -588,3 +588,38 @@ ul {
     
   }
 }
+
+/* ----------------------------------------
+   💻 Ajustements spécifiques pour laptop
+   (entre 1024px et 1440px de large)
+---------------------------------------- */
+@media (min-width: 1024px) and (max-width: 1440px) {
+  .main-title {
+    font-size: 3.5rem;
+  }
+
+  .logo-image {
+    height: 90px;
+  }
+
+  .section-row {
+    height: calc(100vh - 8rem);
+  }
+
+  .bento-gallery {
+    grid-template-columns: 1fr 1fr; /* déjà présent mais réaffirmé ici si nécessaire */
+  }
+
+  .service-card img {
+    height: 140px;
+  }
+
+  .section-title h2 {
+    font-size: 1.6rem;
+  }
+
+  .boutique-gallery {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+}
+
