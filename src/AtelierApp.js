@@ -15,7 +15,7 @@ import OurStory from './components/OurStory';
 import AdminBoutique from './components/AdminBoutique';
 
 import { FaCut, FaStore, FaShoppingBag } from 'react-icons/fa';
-
+import AdminSlots from './components/AdminSlots';
 const defaultWelcomeDetail = {
   text: `Bienvenue à notre atelier de couture et de création textile...Bienvenue dans l’univers délicat de l’Atelier Dentelles & Costumes, où chaque création célèbre l’amour et l’élégance à l’état pur.
 
@@ -233,6 +233,7 @@ export default function AtelierApp() {
   return (
     <Router>
       <Routes>
+        <Route path="/admin-slots" element={<AdminSlots />} />
         <Route path="/" element={<MainApp />} />
         <Route path="/admin" element={<AdminBoutique />} />
       </Routes>
