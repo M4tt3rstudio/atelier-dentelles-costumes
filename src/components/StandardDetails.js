@@ -33,7 +33,7 @@ export default function StandardDetails({ content, conceptKey }) {
   }, []);
 
   return (
-    <div className="section-panel" ref={wrapperRef}>
+    <div className={`section-panel ${conceptKey === "Notre histoire" ? "story-panel" : ""}`} ref={wrapperRef}>
       <div className="section-title sticky-title title-with-button">
         <h2>{`Détail - ${conceptKey}`}</h2>
         {conceptsWithForm.includes(conceptKey) && (
