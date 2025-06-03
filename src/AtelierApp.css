@@ -1,0 +1,568 @@
+/* ----------------------------------------
+   🎨 1. BASE & VARIABLES
+---------------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Playfair+Display:wght@700&display=swap');
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: 'Poppins', sans-serif;
+  overflow: hidden;
+}
+
+:root {
+  --color-bg: #0F1006;
+  --color-text: #EAEAE6;
+  --color-muted: #CBBE9A;
+  --color-border: #CBBE9A;
+  --color-hover: #E5C17C;
+  --color-panel-bg: rgba(203, 190, 154, 0.08);
+}
+
+/* Cacher le menu mais le maintenir pour le SEO */
+.menu{
+  visibility: hidden; /* Rendre le menu invisible mais présent dans le flux de la page */
+}
+
+/* ----------------------------------------
+   🔲 2. LAYOUT GLOBAL
+---------------------------------------- */
+.app-wrapper {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: transparent;
+}
+
+.main-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin: 1rem auto;
+  flex-wrap: wrap;
+}
+
+.logo-image {
+  height: 111px;
+  width: auto;
+  object-fit: contain;
+}
+
+.main-title {
+  font-size: 5rem;  /* Taille du titre inchangée */
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.ampersand {
+  color: var(--color-hover);
+  padding: 0 0.3rem;
+}
+
+.section-row {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  height: calc(100vh - 10rem);
+}
+
+/* ----------------------------------------
+   📌 3. MENU HAUT
+---------------------------------------- */
+.menu {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.menu .clickable {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  color: var(--color-text);
+  position: relative;
+  cursor: pointer;
+}
+
+.menu .clickable::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 100%;
+  width: 0;
+  height: 1px;
+  background: var(--color-text);
+  transition: width 0.3s ease, left 0.3s ease;
+}
+
+.menu .clickable:hover::after,
+.menu .clickable.active::after {
+  width: 100%;
+  left: 0;
+}
+
+/* ----------------------------------------
+   📚 4. PANNEAUX LATERAUX / SECTIONS
+---------------------------------------- */
+.section-panel {
+  
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--color-border);
+  padding: 1rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  background: transparent;
+  max-height: 100%;
+  contain: layout;
+  mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
+  scrollbar-width: thin;
+    scrollbar-color: rgba(229, 193, 124, 0.5) rgba(203, 190, 154, 0.05);
+}
+
+.section-title h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  font-family: 'Playfair Display', serif;
+  text-transform: uppercase;
+  padding: 1rem;
+  margin: 0;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-muted);
+  
+}
+
+.sticky-title {
+  display: flex;
+  flex-direction: row;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  background: var(--color-bg);
+}
+
+/* ----------------------------------------
+   ✍️ 5. TEXTES & BOUTONS
+---------------------------------------- */
+.text-content {
+  line-height: 1.6;
+  padding: 1rem 0;
+  font-size: 1rem;
+  font-weight: 400;
+  font-family: 'Poppins', sans-serif;
+  color: var(--color-muted);
+}
+
+ul {
+  padding-left: 1rem;
+  list-style: none;
+}
+
+.clickable,
+.footer .newsletter a {
+  display: inline-block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+  background: transparent;
+  border: none;
+  position: relative;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: 'Poppins', sans-serif;
+}
+
+.clickable::after,
+.footer .newsletter a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 100%;
+  width: 0;
+  height: 1px;
+  background: var(--color-text);
+  transition: width 0.3s ease, left 0.3s ease;
+}
+
+.clickable:hover::after,
+.clickable.active::after,
+.footer .newsletter a:hover::after {
+  width: 100%;
+  left: 0;
+}
+
+/* ----------------------------------------
+   🧩 6. BOUTONS CONCEPTS
+---------------------------------------- */
+.concept-button {
+  padding: 1rem;
+  background: var(--color-panel-bg);
+  color: var(--color-text);
+  font-weight: 700;
+  font-size: 2rem;
+  font-family: 'Poppins', sans-serif;
+  border: none;
+  border-bottom: 1px solid #444;
+  text-align: left;
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.concept-button::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 100%;
+  width: 0;
+  height: 1px;
+  background: var(--color-text);
+  transition: width 0.3s ease, left 0.3s ease;
+}
+
+.concept-button:hover::after,
+.concept-button.active::after {
+  width: 100%;
+  left: 0;
+}
+
+/* ----------------------------------------
+   🖼️ 7. GALERIE BENTO
+---------------------------------------- */
+.bento-gallery {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.bento-gallery img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-border);
+}
+
+/* ----------------------------------------
+     🛍️ 8. BOUTIQUE
+---------------------------------------- */
+.category-dropdown{
+  padding: 0.5rem 1rem;
+  background: black;
+  color: white;
+  border: 1px solid var(--color-border);
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  font-size: 0.9rem;
+  font-family: 'Poppins', sans-serif;
+
+  
+}
+.boutique-controls {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  justify-content: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.boutique-controls .clickable {
+  padding: 0.5rem 1rem;
+  background: black;
+  color: white;
+  border: 1px solid var(--color-border);
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.boutique-controls .clickable.active,
+.boutique-controls .clickable:hover {
+  border-color: var(--color-hover);
+  color: var(--color-hover);
+}
+
+.boutique-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.boutique-item {
+  border: 1px solid white;
+  padding: 1rem;
+  background: #111;
+  border-radius: 6px;
+  text-align: center;
+  transition: transform 0.3s;
+  cursor: pointer;
+}
+
+.boutique-item:hover {
+  transform: scale(1.03);
+}
+
+.boutique-item img {
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  border: 1px solid #333;
+}
+
+.boutique-item h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0.5rem 0 0.2rem;
+}
+
+.boutique-item p {
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
+/* ----------------------------------------
+     🛠️ 9. SERVICES
+---------------------------------------- */
+.service-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.service-card {
+  background: #111;
+  border: 1px solid white;
+  border-radius: 8px;
+  overflow: hidden;
+  text-align: center;
+  transition: transform 0.3s, border-color 0.3s;
+  cursor: pointer;
+}
+
+.service-card:hover {
+  transform: scale(1.05);
+  border-color: var(--color-hover);
+}
+
+.service-card img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+}
+
+.service-title {
+  font-weight: bold;
+  font-size: 1.1rem;
+  padding: 1rem;
+  color: white;
+}
+
+/* ----------------------------------------
+     💡 10. FORMULAIRES
+---------------------------------------- */
+.formulaire label {
+  margin-top: 1rem;
+  font-weight: bold;
+}
+
+.formulaire input,
+.formulaire select,
+.formulaire textarea {
+  width: 100%;
+  padding: 0.5rem;
+  background: #222;
+  color: white;
+  border: 1px solid #444;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.formulaire button {
+  background: white;
+  color: black;
+  font-weight: bold;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.formulaire button:hover {
+  background: var(--color-hover);
+}
+
+/* ----------------------------------------
+     🎞️ 11. LIGHTBOX
+---------------------------------------- */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.lightbox img {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 8px;
+  box-shadow: 0 0 20px black;
+  object-fit: contain;
+}
+
+/* ----------------------------------------
+     🧷 12. AUTRES
+---------------------------------------- */
+.sticky-form-button {
+  position: sticky;
+  bottom: 1rem;
+  z-index: 5;
+}
+
+/* ----------------------------------------
+     🌠 13. ANIMATIONS
+---------------------------------------- */
+.fade-in {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+.fade-out {
+  opacity: 0;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ----------------------------------------
+     🧼 14. FOOTER
+---------------------------------------- */
+.footer {
+  border-top: 1px solid var(--color-border);
+  padding: 1rem;
+  font-size: 0.9rem;
+  color: #888;
+  text-align: left;
+  background: transparent;
+}
+
+.footer .social-links {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.footer .clickable {
+  font-size: 0.95rem;
+  font-weight: bold;
+}
+
+/* ----------------------------------------
+   🛍️ 8. BOUTIQUE (Mobile Adjustments)
+---------------------------------------- */
+@media (max-width: 768px) {
+  .app-wrapper {
+    height: auto; /* Permettre au contenu de défiler sur mobile */
+  }
+
+  body {
+    overflow: auto; /* Activer le scroll */
+  }
+
+  /* Centre le titre et augmente la taille du logo */
+  .main-title {
+    font-size: 2rem;
+    text-align: center;
+  }
+
+  .logo-image {
+    height: 120px; /* Plus gros logo sur mobile */
+    width: auto;
+  }
+
+  .footer {
+    width: 100%; /* Le footer prend toute la largeur sur mobile */
+  }
+
+  .footer .social-links {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  
+}
+
+  .social-links {
+    
+   margin-top: 5rem;
+    display: flex;
+    justify-content: space-evenly;
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .footer .clickable {
+    font-size: 1rem;
+  }
+
+  /* Réorganiser les sections en colonne sur mobile */
+  .section-row {
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  /* Réinitialiser la scrollbar personnalisée */
+  .section-panel::-webkit-scrollbar {
+    width: 8px;
+    
+  }
+
+  .section-panel::-webkit-scrollbar-track {
+    background: rgba(203, 190, 154, 0.05); /* track très discret */
+    
+  }
+
+  .section-panel::-webkit-scrollbar-thumb {
+    background-color: rgba(229, 193, 124, 0.5); /* thumb doré translucide */
+    border-radius: 3px;
+    transition: background-color 0.3s;
+  }
+
+  .section-panel::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(229, 193, 124, 0.9); /* thumb doré plus visible au hover */
+    
+  }
+
+  /* Scrollbar personnalisée pour Firefox */
+  .section-panel {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(229, 193, 124, 0.5) rgba(203, 190, 154, 0.05);
+  }
+}

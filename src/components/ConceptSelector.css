@@ -1,0 +1,94 @@
+.concept-selector {
+    position: relative;
+    overflow-y: auto;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    background: transparent;
+    border-right: 1px solid var(--color-border);
+  }
+  
+  /* Titre sticky */
+  .section-title {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--color-bg);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  }
+  
+  .section-title h2 {
+    margin: 0;
+    font-size: 2rem;
+    font-family: 'Playfair Display', serif;
+    text-transform: uppercase;
+    color: var(--color-muted);
+    padding: 1rem 0;
+  }
+  
+  /* Texte d’intro */
+  .text-content {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--color-text);
+    margin-bottom: 1rem;
+  }
+  
+  /* Boutons */
+  .clickable {
+    font-size: 1.2rem;
+    font-weight: 600;
+    padding: 0.75rem 0;
+    font-family: 'Poppins', sans-serif;
+    color: var(--color-text);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    position: relative;
+  }
+  
+  .clickable::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 100%;
+    width: 0;
+    height: 1px;
+    background: var(--color-text);
+    transition: width 0.3s ease, left 0.3s ease;
+  }
+  
+  .clickable:hover::after,
+  .clickable.active::after {
+    width: 100%;
+    left: 0;
+  }
+  
+  /* Flèche ↓ */
+  .scroll-indicator {
+    position: absolute;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: var(--color-hover);
+    animation: bounce 1.5s infinite;
+    pointer-events: none;
+    opacity: 0.85;
+    z-index: 10;
+  }
+  
+  @keyframes bounce {
+    0%, 100% {
+      transform: translateX(-50%) translateY(0);
+    }
+    50% {
+      transform: translateX(-50%) translateY(8px);
+    }
+  }
+  
+  

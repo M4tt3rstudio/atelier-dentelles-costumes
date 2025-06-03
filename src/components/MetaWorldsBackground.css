@@ -1,0 +1,27 @@
+.BG-Container{
+
+    position: absolute;
+    width: 100%;
+    height: 100vh;
+    z-index: -1;
+    }
+    
+    .BG-Container img{
+    
+      position: absolute;
+      width: 100%;
+      height: 100vh;
+      
+      }
+    
+      .BG-Container::after{
+        content: '';
+        background-color:#0F1006;
+        opacity: 0.9;
+        filter: blur(2px);
+     
+        position: absolute;
+        width: 100%;
+        height: 100vh;
+        
+        }
