@@ -53,8 +53,13 @@ Nous sélectionnons chaque pièce avec soin, puis la mettons en valeur dans notr
 
 Vous souhaitez déposer une tenue ?  
 Contactez-nous ou venez nous rencontrer à l’atelier. Ensemble, faisons circuler la beauté autrement.`,
-      video: 'dépôt-vente.mp4',
-      images: ['dépôt-vente-1.jpg', 'dépôt-vente-2.jpg', 'dépôt-vente-3.jpg']
+      video: 'depot-vente-1.mp4',
+images: [
+  '/depot-vente-1.jpg',
+  '/depot-vente-2.jpg',
+  '/depot-vente-3.jpg'
+]
+
     },
     icon: FaCut,
   },
