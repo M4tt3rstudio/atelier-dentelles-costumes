@@ -53,24 +53,21 @@ export default function StandardDetails({ content, conceptKey }) {
           {content.video && (
             <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', marginBottom: '1rem' }}>
               <video
-  autoPlay
-  muted
-  loop
-  playsInline
-  poster="default.png" // optionnel : image statique si vidéo échoue
-  style={{
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
-  }}
->
-  <source src={`/videos/${content.video}`} type="video/mp4" />
-  Votre navigateur ne prend pas en charge les vidéos HTML5.
-</video>
-
+                autoPlay
+                muted
+                loop
+                playsInline
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                }}
+              >
+                <source src={`/videos/${content.video}`} type="video/mp4" />
+              </video>
             </div>
           )}
 
