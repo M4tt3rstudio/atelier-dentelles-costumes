@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import './AtelierApp.css'; // Assure-toi que ce fichier est bien importé
-import { Helmet } from 'react-helmet'; // Importer React Helmet
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'; // Importer React Router
+import './AtelierApp.css';
+import { Helmet } from 'react-helmet';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
-import Menu from './components/Menu'; // Ton composant Menu
+import Menu from './components/Menu';
 import ConceptSelector from './components/ConceptSelector';
 import ConceptButtons from './components/ConceptButtons';
 import StandardDetails from './components/StandardDetails';
@@ -11,29 +11,29 @@ import BoutiqueDetails from './components/BoutiqueDetails';
 import FaqPage from './components/FaqPage';
 import ServicesPage from './components/ServicesPage';
 import OurStory from './components/OurStory';
+import AdminBoutique from './components/AdminBoutique';
 
 import { FaCut, FaStore, FaShoppingBag } from 'react-icons/fa';
 
-export default function AtelierApp() {
-  const defaultWelcomeDetail = {
-    text: `Bienvenue à notre atelier de couture et de création textile...Bienvenue dans l’univers délicat de l’Atelier Dentelles & Costumes, où chaque création célèbre l’amour et l’élégance à l’état pur.
+const defaultWelcomeDetail = {
+  text: `Bienvenue à notre atelier de couture et de création textile...Bienvenue dans l’univers délicat de l’Atelier Dentelles & Costumes, où chaque création célèbre l’amour et l’élégance à l’état pur.
 
-    Spécialisé dans les pièces uniques pour mariages et cérémonies, notre atelier redonne vie aux savoir-faire anciens à travers des robes en dentelle sur-mesure, des corsets romantiques, des voiles brodés à la main ou encore des détails couture inspirés d’époques révolues 👑.
-    
-    Ici, chaque fil tisse une émotion. Nous imaginons avec vous la tenue de vos rêves, en mêlant tradition, raffinement et touche personnelle 💫.
-    
-    Que vous rêviez d’une silhouette d’inspiration vintage, d’un clin d’œil baroque ou d’une robe aux allures féeriques, notre atelier vous accompagne dans cette création précieuse — pour que le jour J reste inoubliable jusque dans les moindres détails.
-    
-    🎀 Un lieu hors du temps, pour des mariages hors du commun.`,
-    video: 'default.mp4',
-    images: []
-  };
+Spécialisé dans les pièces uniques pour mariages et cérémonies, notre atelier redonne vie aux savoir-faire anciens à travers des robes en dentelle sur-mesure, des corsets romantiques, des voiles brodés à la main ou encore des détails couture inspirés d’époques révolues 👑.
 
-  const concepts = [
-    {
-      label: 'Dépôt-Vente',
-      detail: {
-        text: `♻️ Dépôt-vente de vêtements de cérémonie  
+Ici, chaque fil tisse une émotion. Nous imaginons avec vous la tenue de vos rêves, en mêlant tradition, raffinement et touche personnelle 💫.
+
+Que vous rêviez d’une silhouette d’inspiration vintage, d’un clin d’œil baroque ou d’une robe aux allures féeriques, notre atelier vous accompagne dans cette création précieuse — pour que le jour J reste inoubliable jusque dans les moindres détails.
+
+🎀 Un lieu hors du temps, pour des mariages hors du commun.`,
+  video: 'default.mp4',
+  images: []
+};
+
+const concepts = [
+  {
+    label: 'Dépôt-Vente',
+    detail: {
+      text: `♻️ Dépôt-vente de vêtements de cérémonie  
 Donnez une seconde vie à vos tenues d’exception.
 
 Vous avez porté une robe de mariée, un costume de cérémonie ou une tenue de fête que vous ne remettrez plus ?  
@@ -53,21 +53,20 @@ Nous sélectionnons chaque pièce avec soin, puis la mettons en valeur dans notr
 
 Vous souhaitez déposer une tenue ?  
 Contactez-nous ou venez nous rencontrer à l’atelier. Ensemble, faisons circuler la beauté autrement.`,
-
-        video: 'dépôt-vente.mp4',
-        images: ['dépôt-vente-1.jpg', 'dépôt-vente-2.jpg', 'dépôt-vente-3.jpg']
-      },
-      icon: FaCut,
+      video: 'dépôt-vente.mp4',
+      images: ['dépôt-vente-1.jpg', 'dépôt-vente-2.jpg', 'dépôt-vente-3.jpg']
     },
-    {
-      label: 'Boutique',
-      detail: {},
-      icon: FaStore,
-    },
-    {
-  label: 'Retouches & Création',
-  detail: {
-    text: `✂️ Retouches & Création  
+    icon: FaCut,
+  },
+  {
+    label: 'Boutique',
+    detail: {},
+    icon: FaStore,
+  },
+  {
+    label: 'Retouches & Création',
+    detail: {
+      text: `✂️ Retouches & Création  
 Sublimer l'existant, imaginer l'inédit.
 
 Chaque vêtement porte une histoire. Que ce soit pour ajuster une robe précieuse, moderniser une tenue de cérémonie ou donner naissance à une création sur-mesure, notre atelier met son savoir-faire au service de vos envies.
@@ -79,20 +78,20 @@ Nous proposons :
 
 Du fil à l’émotion, chaque geste est maîtrisé, chaque détail compte.  
 Un travail d’orfèvre textile, où rien ne se perd, tout se transforme.`,
-
-        video: 'retouches-&-création.mp4',
-        images: ['retouches-&-création-1.jpg', 'retouches-&-création-2.jpg', 'retouches-&-création-3.jpg']
-      },
-      icon: FaShoppingBag,
+      video: 'retouches-&-création.mp4',
+      images: ['retouches-&-création-1.jpg', 'retouches-&-création-2.jpg', 'retouches-&-création-3.jpg']
     },
-  ];
+    icon: FaShoppingBag,
+  },
+];
 
-  const staticLinks = {
-    'Notre histoire': '',
-    'FAQ 💬 & Contact': '',
-    'Services': ''
-  };
+const staticLinks = {
+  'Notre histoire': '',
+  'FAQ 💬 & Contact': '',
+  'Services': ''
+};
 
+function MainApp() {
   const [conceptDetails, setConceptDetails] = useState(defaultWelcomeDetail);
   const [selectedConcept, setSelectedConcept] = useState('Bienvenue');
   const [activeLink, setActiveLink] = useState('Bienvenue');
@@ -146,7 +145,6 @@ Un travail d’orfèvre textile, où rien ne se perd, tout se transforme.`,
     }
   };
 
-  // Définir les titres et métas spécifiques pour chaque section
   const pageTitle = selectedConcept === 'Bienvenue' ? 'Bienvenue | Atelier Dentelles & Costumes' :
                     selectedConcept === 'Boutique' ? 'Boutique | Atelier Dentelles & Costumes' :
                     selectedConcept === 'FAQ 💬 & Contact' ? 'FAQ | Atelier Dentelles & Costumes' :
@@ -162,62 +160,74 @@ Un travail d’orfèvre textile, où rien ne se perd, tout se transforme.`,
                          'Atelier Dentelles & Costumes – Créations uniques et personnalisées.';
 
   return (
-    <Router>
-      <div className="app-wrapper">
-        <Helmet>
-          <title>{pageTitle}</title>
-          <meta name="description" content={pageDescription} />
-          <meta property="og:title" content={pageTitle} />
-          <meta property="og:description" content={pageDescription} />
-          <meta property="og:image" content="/images/Logo-light.svg" />
-          <meta property="og:type" content="website" />
-        </Helmet>
-        {/* Menu caché pour le SEO */}
-        <Menu 
-          concepts={concepts} 
-          onConceptClick={handleConceptChange} 
-          activeLink={activeLink} 
-          className="menu-hidden"  // Applique la classe CSS ici
+    <div className="app-wrapper">
+      <Helmet>
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:image" content="/images/Logo-light.svg" />
+        <meta property="og:type" content="website" />
+      </Helmet>
+
+      <Menu 
+        concepts={concepts} 
+        onConceptClick={handleConceptChange} 
+        activeLink={activeLink} 
+        className="menu-hidden"
+      />
+
+      <div className="main-header">
+        <img src="/images/Logo-light.svg" alt="Logo Atelier" className="logo-image" />
+        <h1 className="main-title">
+          Atelier Dentelles <span className="ampersand">&</span> Costumes
+        </h1>
+      </div>
+
+      <div className="section-row">
+        <ConceptSelector
+          staticLinks={staticLinks}
+          activeLink={activeLink}
+          onSelect={handleConceptChange}
+          welcomeText={defaultWelcomeDetail.text}
         />
-        <div className="main-header">
-          <img src="/images/Logo-light.svg" alt="Logo Atelier" className="logo-image" />
-          <h1 className="main-title">
-            Atelier Dentelles <span className="ampersand">&</span> Costumes
-          </h1>
-        </div>
-        <div className="section-row">
-          <ConceptSelector
-            staticLinks={staticLinks}
-            activeLink={activeLink}
-            onSelect={handleConceptChange}
-            welcomeText={defaultWelcomeDetail.text}
-          />
-          <ConceptButtons
-            concepts={concepts}
-            activeLink={activeLink}
-            onSelect={handleConceptChange}
-          />
-          <div style={{ flex: 2.25 }} key={selectedConcept} className="fade-in">
-            {renderContent()}
-            {lightboxImage && (
-              <div className="lightbox" onClick={() => setLightboxImage(null)}>
-                <img src={lightboxImage} alt="agrandissement" />
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="footer">
-          <div className="newsletter">
-            <a href="/newsletter.pdf" download className="clickable">
-              Télécharger la newsletter
-            </a>
-          </div>
-          <div className="social-links">
-            <a className="clickable" href="https://www.instagram.com/atelier_dentelles_et_costumes?igsh=aG05dzZibjFxN3po">Instagram</a>
-            <a className="clickable" href="https://www.facebook.com/share/15pUDc96q9/">Facebook</a>
-          </div>
+        <ConceptButtons
+          concepts={concepts}
+          activeLink={activeLink}
+          onSelect={handleConceptChange}
+        />
+        <div style={{ flex: 2.25 }} key={selectedConcept} className="fade-in">
+          {renderContent()}
+          {lightboxImage && (
+            <div className="lightbox" onClick={() => setLightboxImage(null)}>
+              <img src={lightboxImage} alt="agrandissement" />
+            </div>
+          )}
         </div>
       </div>
-    </Router> 
+
+      <div className="footer">
+        <div className="newsletter">
+          <a href="/newsletter.pdf" download className="clickable">
+            Télécharger la newsletter
+          </a>
+        </div>
+        <div className="social-links">
+          <a className="clickable" href="https://www.instagram.com/atelier_dentelles_et_costumes?igsh=aG05dzZibjFxN3po">Instagram</a>
+          <a className="clickable" href="https://www.facebook.com/share/15pUDc96q9/">Facebook</a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function AtelierApp() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<MainApp />} />
+        <Route path="/admin" element={<AdminBoutique />} />
+      </Routes>
+    </Router>
   );
 }
