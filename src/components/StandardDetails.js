@@ -57,7 +57,7 @@ export default function StandardDetails({ content, conceptKey }) {
   muted
   loop
   playsInline
-  poster="/default.png" // optionnel : image statique si vidéo échoue
+  poster="default.png" // optionnel : image statique si vidéo échoue
   style={{
     position: 'absolute',
     top: 0,
