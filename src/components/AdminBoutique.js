@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "./supabaseClient";  // Assure-toi que ce fichier est bien importé
+import { supabase } from "./supabaseClient";
 import "./AdminBoutique.css";
 
 export default function AdminBoutique() {
@@ -81,8 +81,6 @@ export default function AdminBoutique() {
       imageUrl = `https://qhjombqzhpiyqlannvup.supabase.co/storage/v1/object/public/boutique-images/${fileName}`;
     }
 
-    console.log("Catégorie à envoyer :", form.categorie); // Debug pour voir la catégorie
-
     if (editMode) {
       const { error } = await supabase
         .from("articles")
@@ -133,17 +131,14 @@ export default function AdminBoutique() {
     setCurrentImageUrl("");
   };
 
-  // Fonction pour supprimer un article
+  // ✅ Nouvelle version de suppression
   const handleDelete = async (id) => {
-    console.log("Article ID to delete:", id); // Log pour vérifier l'ID avant de supprimer
+    console.log("Article ID to delete:", id);
 
-    // Vérification pour voir si l'article avec cet ID existe bien
     const { data: articleData, error: fetchError } = await supabase
       .from("articles")
       .select("*")
       .eq("id", id);
-
-    console.log("Article found:", articleData); // Log pour vérifier si l'article existe avant de tenter la suppression
 
     if (fetchError) {
       console.error("Erreur lors de la récupération de l'article:", fetchError);
@@ -152,41 +147,20 @@ export default function AdminBoutique() {
 
     if (!articleData || articleData.length === 0) {
       console.log("Aucun article trouvé avec cet ID.");
-      return; // Si l'article n'existe pas, on arrête le processus
+      return;
     }
 
-    // Tentative de suppression
-    console.log("Tentative de suppression de l'article...");
-
-    // Supprimer l'article si l'article existe
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("articles")
       .delete()
-      .eq("id", id); // Effectuer la suppression
-
-    console.log("Supabase delete response:", data);  // Affiche la réponse
-    console.log("Supabase delete error:", error);    // Affiche l'erreur
+      .eq("id", id);
 
     if (error) {
-      console.error("Erreur de suppression :", error.message); // Affiche l'erreur si elle existe
+      console.error("Erreur de suppression :", error.message);
       alert("Erreur de suppression : " + error.message);
     } else {
-      console.log("Article successfully deleted");
-
-      // Mise à jour manuelle de l'état pour enlever l'article supprimé avant de rafraîchir
-      setArticles((prevArticles) => prevArticles.filter((article) => article.id !== id));
-
-      // Forcer un rafraîchissement de la liste après suppression
-      const { data: updatedArticles, error: fetchErrorAfterDelete } = await supabase
-        .from("articles")
-        .select("*")
-        .order("id", { ascending: false });  // Récupérer tous les articles après la suppression
-
-      if (fetchErrorAfterDelete) {
-        console.error("Erreur lors du rafraîchissement des articles après suppression:", fetchErrorAfterDelete);
-      } else {
-        setArticles(updatedArticles); // Mettre à jour les articles avec la liste mise à jour
-      }
+      console.log("Article supprimé avec succès !");
+      setArticles((prev) => prev.filter((a) => a.id !== id));
     }
   };
 
