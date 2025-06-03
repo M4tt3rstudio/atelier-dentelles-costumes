@@ -573,6 +573,26 @@ ul {
   }
 }
 
+@media (min-width: 1024px) and (max-width: 1440px) {
+  .section-panel {
+    padding: 1.5rem;
+    font-size: 1rem;
+  }
+
+  .text-content {
+    font-size: 1.05rem;
+    line-height: 1.7;
+  }
+
+  .main-title {
+    font-size: 3.5rem;
+  }
+
+  .logo-image {
+    height: 100px;
+  }
+}
+
 
 @media (max-width: 768px) {
   .lightbox {
