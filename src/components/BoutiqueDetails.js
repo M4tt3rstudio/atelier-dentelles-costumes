@@ -1,12 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from './supabaseClient';
 
-export default function BoutiqueDetails({ filter, setFilter, selectedCategory, setSelectedCategory, setLightboxImage, refreshTrigger }) {
+export default function BoutiqueDetails({
+  filter,
+  setFilter,
+  selectedCategory,
+  setSelectedCategory,
+  setLightboxImage,
+  refreshTrigger
+}) {
   const [articles, setArticles] = useState([]);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     fetchArticles();
   }, [refreshTrigger]);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const fetchArticles = async () => {
     const { data, error } = await supabase
@@ -76,7 +91,12 @@ export default function BoutiqueDetails({ filter, setFilter, selectedCategory, s
           <div
             key={item.id}
             className="boutique-item"
-            onClick={() => setLightboxImage(item.image_url)}
+            onClick={() => {
+              if (!isMobile) {
+                setLightboxImage(item.image_url);
+              }
+            }}
+            style={{ cursor: isMobile ? 'default' : 'pointer' }}
           >
             <img src={item.image_url} alt={item.titre} />
             <h3>{item.titre}</h3>
