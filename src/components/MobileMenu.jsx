@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import ConceptSelector from './ConceptSelector';
-import ConceptDetails from './ConceptDetails';
+import ConceptDetails from '../ConceptDetails';
 import MobileMenu from './MobileMenu';
 import '.index';
 

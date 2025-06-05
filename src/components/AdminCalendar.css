@@ -1,0 +1,100 @@
+.admin-calendar {
+  padding: 2rem;
+  max-width: 900px;
+  margin: auto;
+  font-family: sans-serif;
+}
+
+.admin-calendar h2 {
+  font-size: 1.6rem;
+  margin-bottom: 1rem;
+}
+
+.admin-calendar .month-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.admin-calendar .calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
+}
+
+.admin-calendar .calendar-day {
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+  position: relative;
+  cursor: pointer;
+  min-height: 100px;
+}
+
+.admin-calendar .calendar-day.closed {
+  background-color: #ffe6e6;
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.admin-calendar .calendar-day.selected {
+  outline: 2px solid #333;
+  background-color: #e0f7fa;
+}
+
+.admin-calendar .calendar-day .day-label {
+  font-weight: bold;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.admin-calendar .reservations {
+  margin-top: 1rem;
+  border-top: 1px solid #ddd;
+  padding-top: 1rem;
+}
+
+.admin-calendar .reservations ul {
+  list-style: none;
+  padding: 0;
+  font-size: 0.9rem;
+}
+
+.admin-calendar .reservations li {
+  padding: 0.25rem 0;
+  border-bottom: 1px dashed #ccc;
+}
+
+.admin-calendar .form-group {
+  margin-top: 1.5rem;
+}
+
+.admin-calendar .form-group label {
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+
+.admin-calendar .form-group select,
+.admin-calendar .form-group input {
+  width: 100%;
+  padding: 0.4rem;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.admin-calendar button {
+  background-color: #333;
+  color: white;
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.admin-calendar button:hover {
+  background-color: #555;
+}

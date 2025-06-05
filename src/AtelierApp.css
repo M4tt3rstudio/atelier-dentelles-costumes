@@ -643,3 +643,19 @@ ul {
   }
 }
 
+/* 📚 Ajustement pour centrer et scaler le contenu de la section story */
+.section-panel.story-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+}
+
+.section-panel.story-panel .text-content {
+  max-width: 800px;
+  width: 100%;
+  text-align: justify;
+  font-size: clamp(1rem, 1.2vw, 1.1rem);
+  line-height: 1.8;
+  padding: 1rem 0;
+}

@@ -1,52 +1,25 @@
-// 📄 StandardDetails.jsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import ConceptForm from './ConceptForm';
-import BookingCalendar from './BookingCalendar';
-import { supabase } from './supabaseClient';
+import AdvancedCalendar from './AdvancedCalendar';
 import './StandardDetails.css';
-
+import AvailabilityDebugger from './AvailabilityDebugger';
 export default function StandardDetails({ content, conceptKey }) {
   const [showForm, setShowForm] = useState(false);
-  const [showScrollIndicator, setShowScrollIndicator] = useState(true);
-  const [slots, setSlots] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const wrapperRef = useRef(null);
 
   const conceptsWithForm = ['Dépôt-Vente', 'Retouches & Création'];
 
-  const toggleForm = () => setShowForm(!showForm);
-
-  const handleSlotSelect = ({ date, hour }) => setSelectedSlot({ date, hour });
-
-  useEffect(() => {
-    const fetchSlots = async () => {
-      const { data, error } = await supabase.from('slots').select('*');
-      if (!error) {
-        setSlots(data);
-        console.log('📆 Créneaux reçus :', data);
-      }
-    };
-    fetchSlots();
-  }, []);
-
-  useEffect(() => {
-    const el = wrapperRef.current;
-    const handleScroll = () => {
-      if (!el) return;
-      const isAtBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 10;
-      setShowScrollIndicator(!isAtBottom);
-    };
-    if (el) {
-      el.addEventListener('scroll', handleScroll);
-      handleScroll();
-    }
-    return () => {
-      if (el) el.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
+  const toggleForm = () => {
+    setShowForm((prev) => !prev);
+    setSelectedSlot(null); // reset slot à l’ouverture/fermeture
+  };
 
   return (
-    <div className={`section-panel ${conceptKey === 'Notre histoire' ? 'story-panel' : ''}`} ref={wrapperRef}>
+    <div
+      className={`section-panel ${conceptKey === 'Notre histoire' ? 'story-panel' : ''}`}
+      ref={wrapperRef}
+    >
       <div className="section-title sticky-title title-with-button">
         <h2>{`Détail - ${conceptKey}`}</h2>
         {conceptsWithForm.includes(conceptKey) && (
@@ -58,23 +31,10 @@ export default function StandardDetails({ content, conceptKey }) {
 
       {showForm ? (
         <>
-          {conceptsWithForm.includes(conceptKey) && (
-            <>
-              {slots.length > 0 ? (
-                <>
-                  <p style={{ marginBottom: '1rem', fontWeight: 'bold' }}>
-                    📅 Veuillez sélectionner un créneau de rendez-vous :
-                  </p>
-                  <BookingCalendar onSlotSelect={handleSlotSelect} />
-                </>
-              ) : (
-                <p style={{ color: 'salmon', marginBottom: '1rem' }}>
-                  ❌ Aucun créneau de rendez-vous n’est actuellement disponible.
-                </p>
-              )}
-            </>
-          )}
-
+          <AdvancedCalendar
+            selectedDate={selectedSlot?.date}
+            setSelectedSlot={setSelectedSlot}
+          />
           <ConceptForm
             conceptKey={conceptKey}
             selectedDate={selectedSlot?.date}
@@ -90,7 +50,14 @@ export default function StandardDetails({ content, conceptKey }) {
                 muted
                 loop
                 playsInline
-                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                }}
               >
                 <source src={`/videos/${content.video}`} type="video/mp4" />
               </video>
@@ -111,7 +78,12 @@ export default function StandardDetails({ content, conceptKey }) {
                   <img
                     src={`/images/${img}`}
                     alt={`Image ${i + 1}`}
-                    style={{ width: '100%', height: '100%', borderRadius: '0.5rem', objectFit: 'cover' }}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      borderRadius: '0.5rem',
+                      objectFit: 'cover',
+                    }}
                   />
                 </div>
               ))}
@@ -125,8 +97,6 @@ export default function StandardDetails({ content, conceptKey }) {
           )}
         </>
       )}
-
-      {showScrollIndicator && <div className="scroll-indicator">↓</div>}
     </div>
   );
 }
