@@ -4,7 +4,7 @@ import './AdvancedCalendar.css';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 
-export default function AdvancedCalendar({ selectedDate, setSelectedSlot }) {
+export default function AdvancedCalendar({ selectedDate, setSelectedDate, selectedHour, setSelectedHour }) {
   const [currentMonth, setCurrentMonth] = useState(dayjs().startOf('month'));
   const [availableHours, setAvailableHours] = useState([]);
   const [selectedDay, setSelectedDay] = useState(selectedDate || null);
@@ -15,21 +15,22 @@ export default function AdvancedCalendar({ selectedDate, setSelectedSlot }) {
     }
   }, [selectedDay]);
 
+  useEffect(() => {
+    // Synchronise le jour sélectionné depuis les props si ça vient de l'extérieur
+    if (selectedDate && !dayjs(selectedDate).isSame(selectedDay, 'day')) {
+      setSelectedDay(selectedDate);
+    }
+  }, [selectedDate]);
+
   const fetchAvailableHours = async (date) => {
-    const weekday = (date.getDay() + 7) % 7; // ✅ Correction ici pour que Lundi = 0, Mardi = 1, ..., Dimanche = 6
+    const weekday = (date.getDay() + 7) % 7; // Lundi = 0
     const { data, error } = await supabase
       .from('availability')
       .select('*')
       .eq('weekday', weekday)
       .single();
 
-    if (error) {
-      console.error('Erreur Supabase :', error.message);
-      setAvailableHours([]);
-      return;
-    }
-
-    if (!data || data.is_closed) {
+    if (error || !data || data.is_closed) {
       setAvailableHours([]);
       return;
     }
@@ -67,12 +68,13 @@ export default function AdvancedCalendar({ selectedDate, setSelectedSlot }) {
 
   const handleDayClick = (day) => {
     setSelectedDay(day);
-    setSelectedSlot({ date: day, hour: null });
+    setSelectedDate(day);         // ✅ synchronise avec ConceptForm
+    setSelectedHour(null);        // 🔁 reset l’heure quand le jour change
   };
 
   const handleHourClick = (hour) => {
     if (!selectedDay) return;
-    setSelectedSlot({ date: selectedDay, hour });
+    setSelectedHour(hour);        // ✅ synchronise avec ConceptForm
   };
 
   return (
@@ -108,7 +110,7 @@ export default function AdvancedCalendar({ selectedDate, setSelectedSlot }) {
           {availableHours.map((hour, i) => (
             <div
               key={i}
-              className="hour-slot"
+              className={`hour-slot ${selectedHour === hour ? 'selected' : ''}`}
               onClick={() => handleHourClick(hour)}
             >
               {hour}

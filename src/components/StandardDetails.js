@@ -31,14 +31,8 @@ export default function StandardDetails({ content, conceptKey }) {
 
       {showForm ? (
         <>
-          <AdvancedCalendar
-            selectedDate={selectedSlot?.date}
-            setSelectedSlot={setSelectedSlot}
-          />
           <ConceptForm
             conceptKey={conceptKey}
-            selectedDate={selectedSlot?.date}
-            selectedHour={selectedSlot?.hour}
           />
         </>
       ) : (
