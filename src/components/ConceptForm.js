@@ -3,20 +3,6 @@ import emailjs from 'emailjs-com';
 import { supabase } from './supabaseClient';
 import AdvancedCalendar from './AdvancedCalendar';
 
-const sendConfirmationEmail = (toEmail, rdvDate, rdvHour, conceptKey) => {
-  return emailjs.send(
-    'TON_SERVICE_ID',
-    'TON_TEMPLATE_ID',
-    {
-      user_email: toEmail,
-      rdv_date: rdvDate,
-      rdv_hour: rdvHour,
-      concept: conceptKey,
-    },
-    'TA_PUBLIC_KEY'
-  );
-};
-
 export default function ConceptForm({ conceptKey }) {
   const [formMessage, setFormMessage] = useState('');
   const [formStatus, setFormStatus] = useState('');
@@ -36,69 +22,75 @@ export default function ConceptForm({ conceptKey }) {
       return;
     }
 
-    const { error: updateError } = await supabase
-      .from('slots')
-      .update({ is_booked: true })
-      .eq('date', selectedDate)
-      .eq('hour', selectedHour);
-
-    if (updateError) {
-      setFormStatus('error');
-      setFormMessage("❌ Impossible de réserver ce créneau. Veuillez réessayer.");
-      return;
-    }
-
-    emailjs.sendForm(
-      'TON_SERVICE_ID',
-      'TON_TEMPLATE_FORM_ID',
-      form,
-      'TA_PUBLIC_KEY'
-    ).then(
-      () => {
-        setFormStatus('success');
-        setFormMessage("✅ Message envoyé avec succès !");
-        sendConfirmationEmail(email, selectedDate, selectedHour, conceptKey);
-        form.reset();
-        setSelectedDate(null);
-        setSelectedHour(null);
-      },
-      (error) => {
-        console.error(error.text);
-        setFormStatus('error');
-        setFormMessage("❌ Une erreur est survenue. Merci de réessayer.");
+    try {
+      // Upload des images
+      const photoUrls = [];
+      if (form.photos?.files?.length > 0) {
+        for (const file of form.photos.files) {
+          const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+          const filePath = `reservations/photos/${Date.now()}-${cleanName}`;
+          const { error } = await supabase.storage.from('reservations').upload(filePath, file);
+          if (error) throw error;
+          const { data } = supabase.storage.from('reservations').getPublicUrl(filePath);
+          photoUrls.push(data.publicUrl);
+        }
       }
-    );
+
+      let factureUrl = '';
+      if (form.facture?.files?.length > 0) {
+        const file = form.facture.files[0];
+        const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const filePath = `reservations/factures/${Date.now()}-${cleanName}`;
+        const { error } = await supabase.storage.from('reservations').upload(filePath, file);
+        if (error) throw error;
+        const { data } = supabase.storage.from('reservations').getPublicUrl(filePath);
+        factureUrl = data.publicUrl;
+      }
+
+      // Paramètres à envoyer
+      const templateParams = {
+        user_email: email,
+        description,
+        rdv_date: selectedDate,
+        rdv_hour: selectedHour,
+        concept: conceptKey,
+        type_retouche: form.type_retouche?.value || '',
+        article: form.article?.value || '',
+        date_achat: form.date_achat?.value || '',
+        prix_achat: form.prix_achat?.value || '',
+        etat: form.etat?.value || '',
+        photos_urls: photoUrls.join('\n'),
+        facture_url: factureUrl || ''
+      };
+
+      await emailjs.send('service_l8zklu4', 'template_dw8vcls', templateParams, '_q6rQhvs-jM2i0LdQ');
+
+      setFormStatus('success');
+      setFormMessage('✅ Message envoyé avec succès !');
+      form.reset();
+      setSelectedDate(null);
+      setSelectedHour(null);
+
+    } catch (error) {
+      console.error(error);
+      setFormStatus('error');
+      setFormMessage("❌ Une erreur est survenue. Merci de réessayer.");
+    }
   };
 
   const MessageDisplay = () =>
     formMessage && (
-      <span
-        style={{
-          color: formStatus === 'success' ? 'lightgreen' : 'salmon',
-          fontSize: '0.9rem',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {formMessage}
-      </span>
+      <span style={{ color: formStatus === 'success' ? 'lightgreen' : 'salmon', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>{formMessage}</span>
     );
 
   return (
     <form className="formulaire" onSubmit={sendEmail}>
-      {/* Champs cachés pour emailjs */}
       <input type="hidden" name="selected_date" value={selectedDate || ''} />
       <input type="hidden" name="selected_hour" value={selectedHour || ''} />
 
-      {/* ✅ Affichage unique du calendrier */}
       <label>📅 Veuillez sélectionner un créneau de rendez-vous :</label>
-      <AdvancedCalendar
-        selectedDate={selectedDate}
-        setSelectedDate={setSelectedDate}
-        selectedHour={selectedHour}
-        setSelectedHour={setSelectedHour}
-      />
+      <AdvancedCalendar selectedDate={selectedDate} setSelectedDate={setSelectedDate} selectedHour={selectedHour} setSelectedHour={setSelectedHour} />
 
-      {/* Formulaires selon le concept */}
       {conceptKey === 'Dépôt-Vente' && (
         <>
           <label>Article</label>
@@ -162,28 +154,17 @@ export default function ConceptForm({ conceptKey }) {
           </select>
 
           <label>📸 Joindre des images</label>
-          <input type="file" name="photos_retouche" accept="image/*" multiple />
+          <input type="file" name="photos" accept="image/*" multiple />
 
           <label>Détails de la demande</label>
-          <textarea
-            name="demande"
-            rows="4"
-            placeholder="Décrivez ce que vous souhaitez modifier ou créer..."
-          />
+          <textarea name="demande" rows="4" placeholder="Décrivez ce que vous souhaitez modifier ou créer..." />
         </>
       )}
 
       <label>Votre email</label>
       <input type="email" name="user_email" placeholder="exemple@email.com" required />
 
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        marginTop: '1.5rem',
-        gap: '1rem'
-      }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', marginTop: '1.5rem', gap: '1rem' }}>
         <button type="submit">Soumettre</button>
         <div style={{ flex: 1, textAlign: 'right' }}>
           <MessageDisplay />
