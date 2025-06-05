@@ -23,7 +23,6 @@ export default function ConceptForm({ conceptKey }) {
     }
 
     try {
-      // Upload des images
       const photoUrls = [];
       if (form.photos?.files?.length > 0) {
         for (const file of form.photos.files) {
@@ -47,11 +46,10 @@ export default function ConceptForm({ conceptKey }) {
         factureUrl = data.publicUrl;
       }
 
-      // Paramètres à envoyer
       const templateParams = {
         user_email: email,
         description,
-        rdv_date: selectedDate,
+        rdv_date: selectedDate ? selectedDate.toLocaleDateString('fr-FR') : '',
         rdv_hour: selectedHour,
         concept: conceptKey,
         type_retouche: form.type_retouche?.value || '',
@@ -84,7 +82,7 @@ export default function ConceptForm({ conceptKey }) {
     );
 
   return (
-    <form className="formulaire" onSubmit={sendEmail}>
+    <form className="formulaire" onSubmit={sendEmail} noValidate>
       <input type="hidden" name="selected_date" value={selectedDate || ''} />
       <input type="hidden" name="selected_hour" value={selectedHour || ''} />
 
@@ -130,7 +128,7 @@ export default function ConceptForm({ conceptKey }) {
           <label>📸 Photos</label>
           <input type="file" name="photos" multiple accept="image/*" />
 
-          <label>🧾 Facture (PDF ou image)</label>
+          <label>🧾 Facture (PDF ou image, facultatif)</label>
           <input type="file" name="facture" accept=".pdf,image/*" />
 
           <label>Description</label>
