@@ -1,4 +1,4 @@
-// components/ConceptSelector.js
+// components/ConceptSelector.jsx
 import React from 'react';
 
 export default function ConceptSelector({ staticLinks, activeLink, onSelect, welcomeText }) {
@@ -7,11 +7,13 @@ export default function ConceptSelector({ staticLinks, activeLink, onSelect, wel
       <div className="section-title">
         <h2>L'Atelier</h2>
       </div>
+
       <p className="text-content">{welcomeText}</p>
 
       {Object.keys(staticLinks).map((label, i) => (
         <button
           key={i}
+          id={label === 'Notre histoire' ? 'btn-notre-histoire' : undefined}  // 👈 ID pour le scroll
           className={`clickable concept-button ${activeLink === label ? 'active' : ''}`}
           onClick={() => onSelect(staticLinks[label], label)}
           aria-pressed={activeLink === label}

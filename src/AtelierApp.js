@@ -152,6 +152,24 @@ function MainApp() {
     window.scrollTo({ top: y, behavior: 'smooth' });
   };
 
+  // ✅ scroll sur le bouton "Notre histoire" quand on clique le header (mobile seulement)
+  const scrollToNotreHistoireOnMobile = () => {
+    if (!isMobile) return;
+
+    const target = document.getElementById('btn-notre-histoire');
+    if (!target) return;
+
+    const header = document.querySelector('.main-header');
+    const offset = header ? header.offsetHeight : 0;
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const y = Math.floor(target.getBoundingClientRect().top + window.pageYOffset - offset - 4);
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      });
+    });
+  };
+
   const handleConceptChange = (detail, key) => {
     const concept = concepts.find(c => c.label === key);
     if (concept) setConceptDetails(concept.detail);
@@ -234,7 +252,13 @@ function MainApp() {
         className="menu-hidden"
       />
 
-      <div className="main-header">
+      <div
+        className="main-header"
+        role="button"
+        tabIndex={0}
+        onClick={scrollToNotreHistoireOnMobile}                // 👈 clic sur le header = scroll vers “Notre histoire” (mobile)
+        onKeyDown={(e) => { if (e.key === 'Enter') scrollToNotreHistoireOnMobile(); }}
+      >
         <img src="/images/Logo-light.svg" alt="Logo Atelier" className="logo-image" />
         <h1 className="main-title">
           Atelier Dentelles <span className="ampersand">&</span> Costumes
@@ -287,7 +311,6 @@ function MainApp() {
     </div>
   );
 }
-
 
 export default function AtelierApp() {
   return (
