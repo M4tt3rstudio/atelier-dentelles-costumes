@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import emailjs from 'emailjs-com';
+import React, { useEffect, useState } from 'react';
+import emailjs from '@emailjs/browser'; // <-- remplace 'emailjs-com'
 import { supabase } from './supabaseClient';
 import AdvancedCalendar from './AdvancedCalendar';
 
@@ -9,12 +9,22 @@ export default function ConceptForm({ conceptKey }) {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedHour, setSelectedHour] = useState(null);
 
+  // Option: init une fois (sinon passe la publicKey dans send(..., { publicKey }))
+  useEffect(() => {
+    try {
+      emailjs.init('_q6rQhvs-jM2i0LdQ'); // <- ta PUBLIC key
+    } catch (e) {
+      // rien de bloquant si tu fournis la clé dans send()
+      console.info('EmailJS already initialized or will use inline key.');
+    }
+  }, []);
+
   const sendEmail = async (e) => {
     e.preventDefault();
     const form = e.target;
 
-    const email = form.user_email?.value;
-    const description = form.description?.value || form.demande?.value;
+    const email = form.user_email?.value?.trim();
+    const description = (form.description?.value || form.demande?.value || '').trim();
 
     if (!email || !description || !selectedDate || !selectedHour) {
       setFormStatus('error');
@@ -23,31 +33,39 @@ export default function ConceptForm({ conceptKey }) {
     }
 
     try {
-      const photoUrls = [];
-      if (form.photos?.files?.length > 0) {
-        for (const file of form.photos.files) {
-          const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-          const filePath = `reservations/photos/${Date.now()}-${cleanName}`;
-          const { error } = await supabase.storage.from('reservations').upload(filePath, file);
-          if (error) throw error;
-          const { data } = supabase.storage.from('reservations').getPublicUrl(filePath);
-          photoUrls.push(data.publicUrl);
-        }
-      }
+      // --------------------------
+      // 1) Uploads Supabase (en parallèle)
+      // --------------------------
+      const photoFiles = Array.from(form.photos?.files || []);
+      const factureFile = form.facture?.files?.[0];
 
-      let factureUrl = '';
-      if (form.facture?.files?.length > 0) {
-        const file = form.facture.files[0];
+      const photoUploadPromises = photoFiles.map(async (file) => {
         const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-        const filePath = `reservations/factures/${Date.now()}-${cleanName}`;
+        const filePath = `reservations/photos/${Date.now()}-${cleanName}`;
         const { error } = await supabase.storage.from('reservations').upload(filePath, file);
         if (error) throw error;
         const { data } = supabase.storage.from('reservations').getPublicUrl(filePath);
-        factureUrl = data.publicUrl;
-      }
+        return data.publicUrl;
+      });
 
+      const [photoUrls, factureUrl] = await Promise.all([
+        Promise.all(photoUploadPromises),
+        (async () => {
+          if (!factureFile) return '';
+          const cleanName = factureFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+          const filePath = `reservations/factures/${Date.now()}-${cleanName}`;
+          const { error } = await supabase.storage.from('reservations').upload(filePath, factureFile);
+          if (error) throw error;
+          const { data } = supabase.storage.from('reservations').getPublicUrl(filePath);
+          return data.publicUrl;
+        })(),
+      ]);
+
+      // --------------------------
+      // 2) Params partagés
+      // --------------------------
       const templateParams = {
-        user_email: email,
+        user_email: email, // adresse saisie par l'utilisateur (affichée dans le corps)
         description,
         rdv_date: selectedDate ? selectedDate.toLocaleDateString('fr-FR') : '',
         rdv_hour: selectedHour,
@@ -61,8 +79,28 @@ export default function ConceptForm({ conceptKey }) {
         facture_url: factureUrl || ''
       };
 
-      await emailjs.send('service_l8zklu4', 'template_dw8vcls', templateParams, '_q6rQhvs-jM2i0LdQ');
+      // --------------------------
+      // 3) Envois EmailJS (admin + client)
+      // --------------------------
+      const adminParams = { ...templateParams }; // ton template admin envoie vers toi (To email fixé côté EmailJS)
+      const userParams  = {
+        ...templateParams,
+        to_email: email,       // <-- DESTINATAIRE client (doit matcher {{to_email}} dans le template client)
+        reply_to: email        // facultatif: répondre va au client
+      };
 
+      // en parallèle (tu peux aussi faire en séquentiel si tu préfères)
+      const [adminRes, userRes] = await Promise.all([
+        emailjs.send('service_l8zklu4', 'template_dw8vcls', adminParams /*, { publicKey: '_q6rQhvs-jM2i0LdQ' }*/),
+        emailjs.send('service_l8zklu4', 'template_vl9ikyn', userParams  /*, { publicKey: '_q6rQhvs-jM2i0LdQ' }*/)
+      ]);
+
+      console.info('Admin mail:', adminRes?.status, adminRes?.text);
+      console.info('User  mail:', userRes?.status, userRes?.text);
+
+      // --------------------------
+      // 4) UI
+      // --------------------------
       setFormStatus('success');
       setFormMessage('✅ Message envoyé avec succès !');
       form.reset();
@@ -70,15 +108,23 @@ export default function ConceptForm({ conceptKey }) {
       setSelectedHour(null);
 
     } catch (error) {
-      console.error(error);
+      console.error('Email/Supabase error:', error?.text || error?.message || error);
       setFormStatus('error');
-      setFormMessage("❌ Une erreur est survenue. Merci de réessayer.");
+      setFormMessage(`❌ Une erreur est survenue. ${error?.text || error?.message || 'Merci de réessayer.'}`);
     }
   };
 
   const MessageDisplay = () =>
     formMessage && (
-      <span style={{ color: formStatus === 'success' ? 'lightgreen' : 'salmon', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>{formMessage}</span>
+      <span
+        style={{
+          color: formStatus === 'success' ? 'lightgreen' : 'salmon',
+          fontSize: '0.9rem',
+          whiteSpace: 'nowrap'
+        }}
+      >
+        {formMessage}
+      </span>
     );
 
   return (
@@ -87,7 +133,12 @@ export default function ConceptForm({ conceptKey }) {
       <input type="hidden" name="selected_hour" value={selectedHour || ''} />
 
       <label>📅 Veuillez sélectionner un créneau de rendez-vous :</label>
-      <AdvancedCalendar selectedDate={selectedDate} setSelectedDate={setSelectedDate} selectedHour={selectedHour} setSelectedHour={setSelectedHour} />
+      <AdvancedCalendar
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
+        selectedHour={selectedHour}
+        setSelectedHour={setSelectedHour}
+      />
 
       {conceptKey === 'Dépôt-Vente' && (
         <>
@@ -162,7 +213,16 @@ export default function ConceptForm({ conceptKey }) {
       <label>Votre email</label>
       <input type="email" name="user_email" placeholder="exemple@email.com" required />
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', marginTop: '1.5rem', gap: '1rem' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          marginTop: '1.5rem',
+          gap: '1rem'
+        }}
+      >
         <button type="submit">Soumettre</button>
         <div style={{ flex: 1, textAlign: 'right' }}>
           <MessageDisplay />
