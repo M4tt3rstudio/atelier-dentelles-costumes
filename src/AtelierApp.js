@@ -112,7 +112,7 @@ const staticLinks = {
 };
 
 function MainApp() {
-  useMobileViewportFix(); // actif mais discret
+  useMobileViewportFix();
 
   const [conceptDetails, setConceptDetails] = useState(defaultWelcomeDetail);
   const [selectedConcept, setSelectedConcept] = useState('Bienvenue');
@@ -122,41 +122,41 @@ function MainApp() {
   const [lightboxImage, setLightboxImage] = useState(null);
   const [refreshBoutique, setRefreshBoutique] = useState(false);
 
-  /* 👉 ref fiable vers le panneau de détails */
   const detailRef = useRef(null);
 
-  /* ✅ Scroll précis vers le haut du panneau détails (MOBILE UNIQUEMENT) */
-  const scrollDetailToTopMobile = () => {
-    // smartphone uniquement
-    if (!window.matchMedia('(max-width: 768px)').matches) return;
+  // ✅ détecte mobile une fois (suffisant ici)
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)');
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener ? mq.addEventListener('change', update) : mq.addListener(update);
+    return () => {
+      mq.removeEventListener ? mq.removeEventListener('change', update) : mq.removeListener(update);
+    };
+  }, []);
 
+  // ✅ scroll en haut sur mobile après changement de concept
+  const scrollDetailToTopMobile = () => {
+    if (!isMobile) return;
     const el = detailRef.current;
     if (!el) return;
 
-    // on ne compense le header que s'il est vraiment sticky/fixed
     let offset = 0;
     const header = document.querySelector('.main-header');
     if (header) {
-      const pos = window.getComputedStyle(header).position;
-      if (pos === 'fixed' || pos === 'sticky') {
-        offset = header.offsetHeight;
-      }
+      const pos = getComputedStyle(header).position;
+      if (pos === 'fixed' || pos === 'sticky') offset = header.offsetHeight;
     }
-
-    // calcule la position absolue et aligne EXACTEMENT en haut
     const y = Math.floor(el.getBoundingClientRect().top + window.pageYOffset - offset);
-
-    // scroll fluide au top calculé (évite les centrages automatiques de Safari)
     window.scrollTo({ top: y, behavior: 'smooth' });
   };
 
   const handleConceptChange = (detail, key) => {
     const concept = concepts.find(c => c.label === key);
-    if (concept) {
-      setConceptDetails(concept.detail);
-    } else if (staticLinks[key]) {
-      setConceptDetails(staticLinks[key]);
-    }
+    if (concept) setConceptDetails(concept.detail);
+    else if (staticLinks[key]) setConceptDetails(staticLinks[key]);
+
     setSelectedConcept(key);
     setActiveLink(key);
     setFilter('all');
@@ -167,7 +167,6 @@ function MainApp() {
       setTimeout(() => setRefreshBoutique(false), 100);
     }
 
-    // 🔔 lancer le scroll après le rendu (micro délai)
     setTimeout(scrollDetailToTopMobile, 60);
   };
 
@@ -198,19 +197,24 @@ function MainApp() {
     }
   };
 
-  const pageTitle = selectedConcept === 'Bienvenue' ? 'Bienvenue | Atelier Dentelles & Costumes' :
-                    selectedConcept === 'Boutique' ? 'Boutique | Atelier Dentelles & Costumes' :
-                    selectedConcept === 'FAQ 💬 & Contact' ? 'FAQ | Atelier Dentelles & Costumes' :
-                    selectedConcept === 'Services' ? 'Services | Atelier Dentelles & Costumes' :
-                    selectedConcept === 'Notre histoire' ? 'Notre Histoire | Atelier Dentelles & Costumes' :
-                    'Atelier Dentelles & Costumes';
+  const pageTitle =
+    selectedConcept === 'Bienvenue' ? 'Bienvenue | Atelier Dentelles & Costumes' :
+    selectedConcept === 'Boutique' ? 'Boutique | Atelier Dentelles & Costumes' :
+    selectedConcept === 'FAQ 💬 & Contact' ? 'FAQ | Atelier Dentelles & Costumes' :
+    selectedConcept === 'Services' ? 'Services | Atelier Dentelles & Costumes' :
+    selectedConcept === 'Notre histoire' ? 'Notre Histoire | Atelier Dentelles & Costumes' :
+    'Atelier Dentelles & Costumes';
 
-  const pageDescription = selectedConcept === 'Bienvenue' ? 'Découvrez notre atelier de couture sur mesure, dédié à des créations uniques pour mariages et cérémonies.' :
-                         selectedConcept === 'Boutique' ? 'Explorez notre boutique de pièces uniques, mariant tradition et innovation.' :
-                         selectedConcept === 'FAQ 💬 & Contact' ? 'Consultez notre FAQ et contactez-nous pour plus d’informations.' :
-                         selectedConcept === 'Services' ? 'Découvrez nos services de retouches, créations sur-mesure et plus.' :
-                         selectedConcept === 'Notre histoire' ? 'Apprenez-en plus sur l’histoire et la mission de notre atelier.' :
-                         'Atelier Dentelles & Costumes – Créations uniques et personnalisées.';
+  const pageDescription =
+    selectedConcept === 'Bienvenue' ? 'Découvrez notre atelier de couture sur mesure, dédié à des créations uniques pour mariages et cérémonies.' :
+    selectedConcept === 'Boutique' ? 'Explorez notre boutique de pièces uniques, mariant tradition et innovation.' :
+    selectedConcept === 'FAQ 💬 & Contact' ? 'Consultez notre FAQ et contactez-nous pour plus d’informations.' :
+    selectedConcept === 'Services' ? 'Découvrez nos services de retouches, créations sur-mesure et plus.' :
+    selectedConcept === 'Notre histoire' ? 'Apprenez-en plus sur l’histoire et la mission de notre atelier.' :
+    'Atelier Dentelles & Costumes – Créations uniques et personnalisées.';
+
+  // 👇 clé : NE PAS rendre le panneau détail si on est en mobile sur "Bienvenue"
+  const showDetailPanel = !(isMobile && selectedConcept === 'Bienvenue');
 
   return (
     <div className="app-wrapper">
@@ -249,21 +253,24 @@ function MainApp() {
           activeLink={activeLink}
           onSelect={handleConceptChange}
         />
-        {/* 👉 ref + id pour cibler la section détail */}
-        <div
-          id="detail-panel"
-          ref={detailRef}
-          style={{ flex: 2.25 }}
-          key={selectedConcept}
-          className="fade-in"
-        >
-          {renderContent()}
-          {lightboxImage && (
-            <div className="lightbox" onClick={() => setLightboxImage(null)}>
-              <img src={lightboxImage} alt="agrandissement" />
-            </div>
-          )}
-        </div>
+
+        {showDetailPanel && (
+          <div
+            id="detail-panel"
+            ref={detailRef}
+            data-concept={selectedConcept}
+            style={{ flex: 2.25 }}
+            key={selectedConcept}
+            className="fade-in"
+          >
+            {renderContent()}
+            {lightboxImage && (
+              <div className="lightbox" onClick={() => setLightboxImage(null)}>
+                <img src={lightboxImage} alt="agrandissement" />
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="footer">
@@ -280,6 +287,7 @@ function MainApp() {
     </div>
   );
 }
+
 
 export default function AtelierApp() {
   return (

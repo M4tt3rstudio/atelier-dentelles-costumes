@@ -630,3 +630,107 @@ ul {
 
 /* Défilement doux global (fenêtre) */
 html { scroll-behavior: smooth; }
+
+
+/* ===== Mobile (≤768px) ===== */
+@media (max-width: 768px) {
+  /* Le parent ne doit pas bloquer le sticky */
+  .app-wrapper {
+    height: auto;
+    overflow: visible;            /* ← annule overflow:hidden du global */
+  }
+
+  /* Header compact + collé en haut */
+  .main-header {
+    position: sticky;             /* reste en haut pendant le scroll */
+    top: 0;
+    z-index: 100;
+    background: var(--color-bg);
+    padding: 0.5rem 0;            /* plus fin */
+    border-bottom: 1px solid var(--color-border);
+  }
+  .logo-image {
+    height: 42px;
+    width: auto;
+  }
+  .main-title {
+    font-size: 1.6rem;
+    line-height: 1.2;
+    margin: 0;
+    text-align: center;
+  }
+
+  /* Par défaut en mobile, on CACHE le panneau de détails,
+     puis on le RÉ-AFFICHE pour tout concept ≠ "Bienvenue" */
+  #detail-panel {
+    display: none !important;      /* caché au chargement (Bienvenue) */
+  }
+  #detail-panel[data-concept]:not([data-concept="Bienvenue"]) {
+    display: block !important;     /* s'affiche dès qu'on change de concept */
+  }
+}
+
+@media (max-width: 768px) {
+  .main-header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: var(--color-bg);
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+  /* Ajoute une marge en haut pour ne pas masquer le contenu */
+  .section-row { margin-top: 64px; }  /* ajuste 64px si besoin */
+}
+
+/* ===== Mobile (≤768px) : header compact et fixé en haut ===== */
+@media (max-width: 768px) {
+  .main-header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: var(--color-bg);
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .logo-image { height: 42px; width: auto; }
+  .main-title { font-size: 1.6rem; line-height: 1.2; margin: 0; text-align: center; }
+}
+
+/* ===== Mobile (≤768px) : cacher "Bienvenue" + header collé en haut ===== */
+@media (max-width: 768px) {
+  /* cache le panneau de détails quand on est sur l’onglet Bienvenue */
+  #detail-panel[data-concept="Bienvenue"] {
+    display: none !important;
+  }
+
+  /* header compact collé en haut */
+  .main-header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: var(--color-bg);
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .logo-image { height: 42px; width: auto; }
+  .main-title { font-size: 1.6rem; line-height: 1.2; margin: 0; text-align: center; }
+
+  /* décale le contenu pour ne pas passer sous le header fixé */
+  .section-row { margin-top: 64px; } /* ajuste si besoin (≈ hauteur du header) */
+}
+
+@media (max-width: 768px) {
+  .app-wrapper { overflow: visible !important; } /* évite de casser le fixed */
+  .main-header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: var(--color-bg);
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .logo-image { height: 42px; width: auto; }
+  .main-title { font-size: 1.6rem; line-height: 1.2; margin: 0; text-align: center; }
+
+  /* pousse le contenu sous le header fixé (ajuste si besoin) */
+  .section-row { margin-top: 64px !important; }
+}
