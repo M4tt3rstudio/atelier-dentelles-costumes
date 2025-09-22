@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 import './AtelierApp.css';
 import { Helmet } from 'react-helmet';
@@ -122,24 +122,33 @@ function MainApp() {
   const [lightboxImage, setLightboxImage] = useState(null);
   const [refreshBoutique, setRefreshBoutique] = useState(false);
 
-  // ✅ Scroll précis vers le haut du panneau détails (mobile uniquement)
-  useEffect(() => {
-    const isMobile = window.matchMedia('(max-width: 768px)').matches;
-    if (!isMobile) return;
+  /* 👉 ref fiable vers le panneau de détails */
+  const detailRef = useRef(null);
 
-    // attendre la fin du rendu
-    requestAnimationFrame(() => {
-      const target = document.getElementById('detail-panel');
-      if (!target) return;
+  /* ✅ Scroll précis vers le haut du panneau détails (MOBILE UNIQUEMENT) */
+  const scrollDetailToTopMobile = () => {
+    // smartphone uniquement
+    if (!window.matchMedia('(max-width: 768px)').matches) return;
 
-      const header = document.querySelector('.main-header');
-      const offset = header ? header.offsetHeight : 0;
+    const el = detailRef.current;
+    if (!el) return;
 
-      const y = target.getBoundingClientRect().top + window.pageYOffset - offset;
+    // on ne compense le header que s'il est vraiment sticky/fixed
+    let offset = 0;
+    const header = document.querySelector('.main-header');
+    if (header) {
+      const pos = window.getComputedStyle(header).position;
+      if (pos === 'fixed' || pos === 'sticky') {
+        offset = header.offsetHeight;
+      }
+    }
 
-      window.scrollTo({ top: y, behavior: 'smooth' });
-    });
-  }, [selectedConcept]); // ⬅️ se déclenche après chaque changement de concept/page
+    // calcule la position absolue et aligne EXACTEMENT en haut
+    const y = Math.floor(el.getBoundingClientRect().top + window.pageYOffset - offset);
+
+    // scroll fluide au top calculé (évite les centrages automatiques de Safari)
+    window.scrollTo({ top: y, behavior: 'smooth' });
+  };
 
   const handleConceptChange = (detail, key) => {
     const concept = concepts.find(c => c.label === key);
@@ -158,7 +167,8 @@ function MainApp() {
       setTimeout(() => setRefreshBoutique(false), 100);
     }
 
-    // ⛔️ Pas de scroll ici : on le fait dans useEffect après rendu (plus fiable)
+    // 🔔 lancer le scroll après le rendu (micro délai)
+    setTimeout(scrollDetailToTopMobile, 60);
   };
 
   const renderContent = () => {
@@ -239,9 +249,10 @@ function MainApp() {
           activeLink={activeLink}
           onSelect={handleConceptChange}
         />
-        {/* 👉 id pour cibler la section détail */}
+        {/* 👉 ref + id pour cibler la section détail */}
         <div
           id="detail-panel"
+          ref={detailRef}
           style={{ flex: 2.25 }}
           key={selectedConcept}
           className="fade-in"
