@@ -18,20 +18,16 @@ import { FaCut, FaStore, FaShoppingBag } from 'react-icons/fa';
 
 import AdminCalendar from './components/AdminCalendar'; // 👈 Importe ton nouveau composant
 
-/* === AJOUT MINIMAL : hook pour hauteur viewport mobile fiable === */
+/* === Hook simple : fixe une variable --vh à l'init (pas de resize) === */
 function useMobileViewportFix() {
   useEffect(() => {
     const setVh = () => {
       const vh = window.innerHeight * 0.01;
       document.documentElement.style.setProperty('--vh', `${vh}px`);
     };
-    setVh();
-    window.addEventListener('resize', setVh);
+    setVh(); // init seulement
     window.addEventListener('orientationchange', setVh);
-    return () => {
-      window.removeEventListener('resize', setVh);
-      window.removeEventListener('orientationchange', setVh);
-    };
+    return () => window.removeEventListener('orientationchange', setVh);
   }, []);
 }
 
@@ -116,8 +112,7 @@ const staticLinks = {
 };
 
 function MainApp() {
-  /* === AJOUT : activer le fix viewport mobile === */
-  useMobileViewportFix();
+  useMobileViewportFix(); // actif mais discret
 
   const [conceptDetails, setConceptDetails] = useState(defaultWelcomeDetail);
   const [selectedConcept, setSelectedConcept] = useState('Bienvenue');
@@ -127,13 +122,24 @@ function MainApp() {
   const [lightboxImage, setLightboxImage] = useState(null);
   const [refreshBoutique, setRefreshBoutique] = useState(false);
 
-  /* === AJOUT : scroll automatique vers le panneau détail en mobile === */
-  const goToDetailPanelIfMobile = () => {
+  /* === Scroll fluide et stable vers la zone détail (fenêtre) === */
+  const scrollToDetail = () => {
+    // mobile uniquement
     const isMobile = window.matchMedia('(max-width: 768px)').matches;
     if (!isMobile) return;
+
     requestAnimationFrame(() => {
-      const el = document.getElementById('detail-panel');
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const target = document.getElementById('detail-panel');
+      if (!target) return;
+
+      // hauteur d’un éventuel header (ajuste si nécessaire)
+      const header = document.querySelector('.main-header');
+      const offset = header ? header.offsetHeight : 0;
+
+      // position absolue de la cible
+      const y = target.getBoundingClientRect().top + window.pageYOffset - offset;
+
+      window.scrollTo({ top: y, behavior: 'smooth' });
     });
   };
 
@@ -154,8 +160,8 @@ function MainApp() {
       setTimeout(() => setRefreshBoutique(false), 100);
     }
 
-    /* === AJOUT : déclenche le scroll vers le panneau détail (mobile) === */
-    goToDetailPanelIfMobile();
+    // ⬇️ lancer le scroll propre vers le panneau détail (mobile)
+    scrollToDetail();
   };
 
   const renderContent = () => {
@@ -236,12 +242,12 @@ function MainApp() {
           activeLink={activeLink}
           onSelect={handleConceptChange}
         />
-        {/* === AJOUT : id + classes non intrusives pour le scroll en mobile === */}
+        {/* 👉 On ajoute juste un id pour cibler la section détail */}
         <div
           id="detail-panel"
           style={{ flex: 2.25 }}
           key={selectedConcept}
-          className="fade-in snap-section mobile-fullscreen"
+          className="fade-in"
         >
           {renderContent()}
           {lightboxImage && (
