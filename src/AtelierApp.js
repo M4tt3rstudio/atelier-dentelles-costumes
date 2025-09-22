@@ -122,26 +122,24 @@ function MainApp() {
   const [lightboxImage, setLightboxImage] = useState(null);
   const [refreshBoutique, setRefreshBoutique] = useState(false);
 
-  /* === Scroll fluide et stable vers la zone détail (fenêtre) === */
-  const scrollToDetail = () => {
-    // mobile uniquement
+  // ✅ Scroll précis vers le haut du panneau détails (mobile uniquement)
+  useEffect(() => {
     const isMobile = window.matchMedia('(max-width: 768px)').matches;
     if (!isMobile) return;
 
+    // attendre la fin du rendu
     requestAnimationFrame(() => {
       const target = document.getElementById('detail-panel');
       if (!target) return;
 
-      // hauteur d’un éventuel header (ajuste si nécessaire)
       const header = document.querySelector('.main-header');
       const offset = header ? header.offsetHeight : 0;
 
-      // position absolue de la cible
       const y = target.getBoundingClientRect().top + window.pageYOffset - offset;
 
       window.scrollTo({ top: y, behavior: 'smooth' });
     });
-  };
+  }, [selectedConcept]); // ⬅️ se déclenche après chaque changement de concept/page
 
   const handleConceptChange = (detail, key) => {
     const concept = concepts.find(c => c.label === key);
@@ -160,8 +158,7 @@ function MainApp() {
       setTimeout(() => setRefreshBoutique(false), 100);
     }
 
-    // ⬇️ lancer le scroll propre vers le panneau détail (mobile)
-    scrollToDetail();
+    // ⛔️ Pas de scroll ici : on le fait dans useEffect après rendu (plus fiable)
   };
 
   const renderContent = () => {
@@ -242,7 +239,7 @@ function MainApp() {
           activeLink={activeLink}
           onSelect={handleConceptChange}
         />
-        {/* 👉 On ajoute juste un id pour cibler la section détail */}
+        {/* 👉 id pour cibler la section détail */}
         <div
           id="detail-panel"
           style={{ flex: 2.25 }}
