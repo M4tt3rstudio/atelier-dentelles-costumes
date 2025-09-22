@@ -68,3 +68,76 @@
   }
   
   
+
+  /* 1) Petites retouches globales pour mieux gérer l'overflow */
+.title-with-button {
+  display: grid;                     /* plus robuste que flex ici */
+  grid-template-columns: 1fr auto;   /* titre prend la largeur libre, bouton s'ajuste */
+  align-items: center;
+  column-gap: .75rem;
+  min-width: 0;                      /* autorise le shrink du contenu */
+}
+
+.title-with-button h2 {
+  margin: 0;
+  font-size: clamp(1.2rem, 5.5vw, 2rem); /* descend en mobile */
+  line-height: 1.1;
+  min-width: 0;                           /* permet le wrap si besoin */
+  word-break: break-word;                 /* casse proprement si très long */
+}
+
+.form-toggle-button {
+  background: transparent;
+  border: none;
+  font-size: clamp(.72rem, 3.4vw, 1rem);  /* descend en mobile */
+  color: white;
+  font-weight: bold;
+  text-transform: uppercase;
+  padding: .35rem .6rem;                  /* padding réduit en mobile */
+  cursor: pointer;
+  transition: color .3s ease;
+  justify-self: end;                      /* colle le bouton à droite */
+  max-width: 48vw;                        /* évite le débordement sur très petits écrans */
+  white-space: nowrap;                    /* reste sur une ligne si ça tient */
+  overflow: hidden;
+  text-overflow: ellipsis;                /* … si le texte reste trop long */
+}
+
+/* 2) Ajustement de l'underline animé pour suivre la nouvelle largeur */
+.form-toggle-button::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: white;
+  transition: width .3s ease;
+}
+.form-toggle-button:hover::after {
+  width: 100%;
+}
+
+/* 3) Sécurité supplémentaire sur très petits écrans */
+@media (max-width: 380px) {
+  .title-with-button {
+    column-gap: .5rem;
+  }
+  .form-toggle-button {
+    max-width: 42vw;  /* un peu plus strict si écran minuscule */
+    padding: .3rem .5rem;
+  }
+}
+
+
+@media (max-width: 340px) {
+  .title-with-button {
+    grid-template-columns: 1fr;   /* empile */
+    row-gap: .4rem;
+  }
+  .form-toggle-button {
+    justify-self: start;          /* bouton sous le titre, aligné gauche */
+    white-space: normal;          /* autorise le wrap */
+    max-width: 100%;
+  }
+}
