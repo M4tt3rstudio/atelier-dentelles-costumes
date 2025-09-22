@@ -23,7 +23,7 @@ export default function AdvancedCalendar({ selectedDate, setSelectedDate, select
   }, [selectedDate]);
 
   const fetchAvailableHours = async (date) => {
-    const weekday = (date.getDay() + 7) % 7; // Lundi = 0
+    const weekday = (date.getDay() + 6) % 7; // Lundi = 0
     const { data, error } = await supabase
       .from('availability')
       .select('*')
