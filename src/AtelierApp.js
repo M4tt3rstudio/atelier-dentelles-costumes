@@ -16,9 +16,24 @@ import AdminBoutique from './components/AdminBoutique';
 
 import { FaCut, FaStore, FaShoppingBag } from 'react-icons/fa';
 
-
 import AdminCalendar from './components/AdminCalendar'; // 👈 Importe ton nouveau composant
 
+/* === AJOUT MINIMAL : hook pour hauteur viewport mobile fiable === */
+function useMobileViewportFix() {
+  useEffect(() => {
+    const setVh = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+    setVh();
+    window.addEventListener('resize', setVh);
+    window.addEventListener('orientationchange', setVh);
+    return () => {
+      window.removeEventListener('resize', setVh);
+      window.removeEventListener('orientationchange', setVh);
+    };
+  }, []);
+}
 
 const defaultWelcomeDetail = {
   text: `Bienvenue à notre atelier de couture et de création textile...Bienvenue dans l’univers délicat de l’Atelier Dentelles & Costumes, où chaque création célèbre l’amour et l’élégance à l’état pur.
@@ -59,12 +74,11 @@ Nous sélectionnons chaque pièce avec soin, puis la mettons en valeur dans notr
 Vous souhaitez déposer une tenue ?  
 Contactez-nous ou venez nous rencontrer à l’atelier. Ensemble, faisons circuler la beauté autrement.`,
       video: 'depot-vente-1.mp4',
-images: [
-  '/depot-vente-1.jpg',
-  '/depot-vente-2.jpg',
-  '/depot-vente-3.jpg'
-]
-
+      images: [
+        '/depot-vente-1.jpg',
+        '/depot-vente-2.jpg',
+        '/depot-vente-3.jpg'
+      ]
     },
     icon: FaCut,
   },
@@ -102,6 +116,9 @@ const staticLinks = {
 };
 
 function MainApp() {
+  /* === AJOUT : activer le fix viewport mobile === */
+  useMobileViewportFix();
+
   const [conceptDetails, setConceptDetails] = useState(defaultWelcomeDetail);
   const [selectedConcept, setSelectedConcept] = useState('Bienvenue');
   const [activeLink, setActiveLink] = useState('Bienvenue');
@@ -110,7 +127,15 @@ function MainApp() {
   const [lightboxImage, setLightboxImage] = useState(null);
   const [refreshBoutique, setRefreshBoutique] = useState(false);
 
-
+  /* === AJOUT : scroll automatique vers le panneau détail en mobile === */
+  const goToDetailPanelIfMobile = () => {
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    if (!isMobile) return;
+    requestAnimationFrame(() => {
+      const el = document.getElementById('detail-panel');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
 
   const handleConceptChange = (detail, key) => {
     const concept = concepts.find(c => c.label === key);
@@ -128,6 +153,9 @@ function MainApp() {
       setRefreshBoutique(true);
       setTimeout(() => setRefreshBoutique(false), 100);
     }
+
+    /* === AJOUT : déclenche le scroll vers le panneau détail (mobile) === */
+    goToDetailPanelIfMobile();
   };
 
   const renderContent = () => {
@@ -208,7 +236,13 @@ function MainApp() {
           activeLink={activeLink}
           onSelect={handleConceptChange}
         />
-        <div style={{ flex: 2.25 }} key={selectedConcept} className="fade-in">
+        {/* === AJOUT : id + classes non intrusives pour le scroll en mobile === */}
+        <div
+          id="detail-panel"
+          style={{ flex: 2.25 }}
+          key={selectedConcept}
+          className="fade-in snap-section mobile-fullscreen"
+        >
           {renderContent()}
           {lightboxImage && (
             <div className="lightbox" onClick={() => setLightboxImage(null)}>
@@ -237,8 +271,7 @@ export default function AtelierApp() {
   return (
     <Router>
       <Routes>
-        <Route path="/admin-calendar" element={<AdminCalendar />} /> {/* ✅ La nouvelle page admin */}
-        
+        <Route path="/admin-calendar" element={<AdminCalendar />} /> {/* ✅ La nouvelle page admin */} 
         <Route path="/" element={<MainApp />} />
         <Route path="/admin" element={<AdminBoutique />} />
       </Routes>

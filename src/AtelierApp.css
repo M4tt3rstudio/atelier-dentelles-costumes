@@ -659,3 +659,33 @@ ul {
   line-height: 1.8;
   padding: 1rem 0;
 }
+
+/* Défilement doux partout */
+html { scroll-behavior: smooth; }
+
+/* Unité viewport fiable pour mobile (sera mise à jour en JS) */
+:root { --vh: 1vh; } /* valeur par défaut */
+
+/* Sections qui doivent occuper tout l'écran et s'aligner au scroll */
+.snap-section {
+  min-height: calc(var(--vh) * 100);
+  scroll-snap-align: start;
+  scroll-margin-top: var(--mobile-offset, 0px); /* marge si header */
+}
+
+@media (max-width: 768px) {
+  /* Le conteneur qui scrolle en mobile (ton .section-row) */
+  .section-row {
+    scroll-snap-type: y mandatory;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Optionnel : si tu veux forcer certains panneaux à prendre l'écran */
+  .mobile-fullscreen {
+    min-height: calc(var(--vh) * 100);
+  }
+
+  /* Petite anim d'apparition quand on arrive sur la section */
+  .snap-section { animation: fadeIn 0.25s ease both; }
+}
