@@ -1,15 +1,11 @@
+/* === Anti-scroll horizontal global (patch) === */
+html, body { width: 100%; max-width: 100%; overflow-x: hidden; touch-action: pan-y; overscroll-behavior-x: none; }
+/* ============================================ */
+
 /* ----------------------------------------
    🎨 1. BASE & VARIABLES
 ---------------------------------------- */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Playfair+Display:wght@700&display=swap');
-
-body {
-  margin: 0;
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-family: 'Poppins', sans-serif;
-  overflow: hidden;
-}
 
 :root {
   --color-bg: #0F1006;
@@ -18,25 +14,31 @@ body {
   --color-border: #CBBE9A;
   --color-hover: #E5C17C;
   --color-panel-bg: rgba(203, 190, 154, 0.08);
+  --vh: 1vh;        /* mise à jour par le hook */
+  --header-h: 64px; /* mise à jour dynamiquement en JS (ResizeObserver) */
+}
 
-  /* utile si tu utilises le hook pour fixer la "vraie" hauteur mobile */
-  --vh: 1vh;
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: 'Poppins', sans-serif;
+  overflow: hidden;          /* desktop : pas de scroll global */
 }
 
 /* Cacher le menu mais le maintenir pour le SEO */
-.menu{
-  visibility: hidden; /* Rendre le menu invisible mais présent dans le flux de la page */
-}
+.menu { visibility: hidden; }
 
 /* ----------------------------------------
    🔲 2. LAYOUT GLOBAL
 ---------------------------------------- */
 .app-wrapper {
   height: 100vh;
-  width: 100vw;
+  width: 100%;                 /* évite le débordement dû à 100vw */
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-x: hidden;          /* pas de scroll horizontal */
+  overflow-y: hidden;          /* scroll géré par sections (mobile: override) */
   background: transparent;
 }
 
@@ -47,16 +49,18 @@ body {
   gap: 1rem;
   margin: 1rem auto;
   flex-wrap: wrap;
+  transition: padding 0.25s ease, transform 0.25s ease, background 0.25s ease;
 }
 
 .logo-image {
   height: 111px;
   width: auto;
   object-fit: contain;
+  transition: height 0.25s ease, opacity 0.25s ease, margin 0.25s ease;
 }
 
 .main-title {
-  font-size: 5rem;  /* Taille du titre inchangée */
+  font-size: 5rem;
   font-family: 'Playfair Display', serif;
   font-weight: 700;
   text-transform: uppercase;
@@ -64,17 +68,19 @@ body {
   margin: 0;
 }
 
-.ampersand {
-  color: var(--color-hover);
-  padding: 0 0.3rem;
-}
+.ampersand { color: var(--color-hover); padding: 0 0.3rem; }
 
 .section-row {
   display: flex;
   flex: 1;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: hidden;
   height: calc(100vh - 10rem);
 }
+
+/* Header repliable */
+.main-header.collapsed { padding: 0.25rem 0; }
+.main-header.collapsed .logo-image { height: 0 !important; opacity: 0; margin: 0; }
 
 /* ----------------------------------------
    📌 3. MENU HAUT
@@ -124,7 +130,7 @@ body {
   flex-direction: column;
   border-right: 1px solid var(--color-border);
   padding: 1rem;
-  overflow-y: auto;
+  overflow-y: auto;   /* scroll interne */
   overflow-x: hidden;
   position: relative;
   background: transparent;
@@ -168,10 +174,7 @@ body {
   color: var(--color-muted);
 }
 
-ul {
-  padding-left: 1rem;
-  list-style: none;
-}
+ul { padding-left: 1rem; list-style: none; }
 
 .clickable,
 .footer .newsletter a {
@@ -276,6 +279,7 @@ ul {
   font-size: 0.9rem;
   font-family: 'Poppins', sans-serif;
 }
+
 .boutique-controls {
   display: flex;
   gap: 1rem;
@@ -317,9 +321,7 @@ ul {
   cursor: pointer;
 }
 
-.boutique-item:hover {
-  transform: scale(1.03);
-}
+.boutique-item:hover { transform: scale(1.03); }
 
 .boutique-item img {
   width: 100%;
@@ -330,16 +332,8 @@ ul {
   border: 1px solid #333;
 }
 
-.boutique-item h3 {
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin: 0.5rem 0 0.2rem;
-}
-
-.boutique-item p {
-  font-size: 0.9rem;
-  color: #aaa;
-}
+.boutique-item h3 { font-size: 1.2rem; font-weight: 700; margin: 0.5rem 0 0.2rem; }
+.boutique-item p { font-size: 0.9rem; color: #aaa; }
 
 /* ----------------------------------------
      🛠️ 9. SERVICES
@@ -361,31 +355,14 @@ ul {
   cursor: pointer;
 }
 
-.service-card:hover {
-  transform: scale(1.05);
-  border-color: var(--color-hover);
-}
-
-.service-card img {
-  width: 100%;
-  height: 160px;
-  object-fit: cover;
-}
-
-.service-title {
-  font-weight: bold;
-  font-size: 1.1rem;
-  padding: 1rem;
-  color: white;
-}
+.service-card:hover { transform: scale(1.05); border-color: var(--color-hover); }
+.service-card img { width: 100%; height: 160px; object-fit: cover; }
+.service-title { font-weight: bold; font-size: 1.1rem; padding: 1rem; color: white; }
 
 /* ----------------------------------------
      💡 10. FORMULAIRES
 ---------------------------------------- */
-.formulaire label {
-  margin-top: 1rem;
-  font-weight: bold;
-}
+.formulaire label { margin-top: 1rem; font-weight: bold; }
 
 .formulaire input,
 .formulaire select,
@@ -410,9 +387,7 @@ ul {
   transition: background 0.3s;
 }
 
-.formulaire button:hover {
-  background: var(--color-hover);
-}
+.formulaire button:hover { background: var(--color-hover); }
 
 /* ----------------------------------------
      🎞️ 11. LIGHTBOX
@@ -443,27 +418,15 @@ ul {
 /* ----------------------------------------
      🧷 12. AUTRES
 ---------------------------------------- */
-.sticky-form-button {
-  position: sticky;
-  bottom: 1rem;
-  z-index: 5;
-}
+.sticky-form-button { position: sticky; bottom: 1rem; z-index: 5; }
 
 /* ----------------------------------------
      🌠 13. ANIMATIONS
 ---------------------------------------- */
-.fade-in {
-  animation: fadeIn 0.3s ease forwards;
-}
+.fade-in { animation: fadeIn 0.3s ease forwards; }
+.fade-out { opacity: 0; }
 
-.fade-out {
-  opacity: 0;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 /* ----------------------------------------
      🧼 14. FOOTER
@@ -477,70 +440,50 @@ ul {
   background: transparent;
 }
 
-.footer .social-links {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
+.footer .social-links { display: flex; gap: 1rem; flex-wrap: wrap; }
+.footer .clickable { font-size: 0.95rem; font-weight: bold; }
 
-.footer .clickable {
-  font-size: 0.95rem;
-  font-weight: bold;
+/* ----------------------------------------
+   💻 Desktop : empêcher le scroll global
+---------------------------------------- */
+@media (min-width: 769px) {
+  html, body { height: 100%; overflow: hidden !important; } /* bloque le scroll fenêtre */
+  .app-wrapper { height: 100vh; overflow: hidden; }
+  .section-panel { overflow-y: auto; } /* scroll interne */
 }
 
 /* ----------------------------------------
-   🛍️ 8. BOUTIQUE (Mobile Adjustments)
+   📱 Mobile (≤768px) : header fixé + offset dynamique
 ---------------------------------------- */
 @media (max-width: 768px) {
-  .app-wrapper {
-    height: auto; /* Permettre au contenu de défiler sur mobile */
+  /* le wrapper redevient scrollable */
+  .app-wrapper { height: auto; overflow: visible; }
+  body { overflow-y: auto; }
+
+  .main-header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: var(--color-bg);
+    padding: 0.5rem 0;
+    margin: 0; /* colle vraiment en haut */
+    border-bottom: 1px solid var(--color-border);
+  }
+  .logo-image { height: 42px; width: auto; }
+  .main-title { font-size: 1.6rem; line-height: 1.2; margin: 0; text-align: center; }
+
+  /* Le contenu démarre exactement sous le header (hauteur dynamique) */
+  .section-row { margin-top: var(--header-h) !important; height: auto; overflow: visible; flex-direction: column; padding: 1rem; }
+
+  /* Section “Bienvenue” plein écran − header */
+  #detail-panel[data-concept="Bienvenue"] {
+    display: block !important;
+    min-height: calc(100dvh - var(--header-h));
+    min-height: calc(var(--vh) * 100 - var(--header-h));
+    overflow-y: auto;
   }
 
-  body {
-    overflow: auto; /* Activer le scroll fenêtre en mobile */
-  }
-
-  /* Centre le titre et augmente la taille du logo */
-  .main-title {
-    font-size: 2rem;
-    text-align: center;
-  }
-
-  .logo-image {
-    height: 120px; /* Plus gros logo sur mobile */
-    width: auto;
-  }
-
-  .footer {
-    width: 100%; /* Le footer prend toute la largeur sur mobile */
-  }
-
-  .footer .social-links {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
-
-  .social-links {
-    margin-top: 5rem;
-    display: flex;
-    justify-content: space-evenly;
-    gap: 1rem;
-    width: 100%;
-  }
-
-  .footer .clickable {
-    font-size: 1rem;
-  }
-
-  /* Réorganiser les sections en colonne sur mobile */
-  .section-row {
-    flex-direction: column;
-    padding: 1rem;
-    height: auto; /* évite la contrainte de hauteur fixe en mobile */
-  }
-
-  /* Scrollbar personnalisée */
+  /* Scrollbars custom */
   .section-panel::-webkit-scrollbar { width: 8px; }
   .section-panel::-webkit-scrollbar-track { background: rgba(203, 190, 154, 0.05); }
   .section-panel::-webkit-scrollbar-thumb {
@@ -548,67 +491,12 @@ ul {
     border-radius: 3px;
     transition: background-color 0.3s;
   }
-  .section-panel::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(229, 193, 124, 0.9);
-  }
+  .section-panel::-webkit-scrollbar-thumb:hover { background-color: rgba(229, 193, 124, 0.9); }
+  .section-panel { scrollbar-width: thin; scrollbar-color: rgba(229, 193, 124, 0.5) rgba(203, 190, 154, 0.05); }
 
-  /* Scrollbar Firefox */
-  .section-panel {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(229, 193, 124, 0.5) rgba(203, 190, 154, 0.05);
-  }
-
-  /* Plein écran fiable pour les sections marquées (si tu veux l'utiliser) */
-  .snap-section,
-  .mobile-fullscreen {
-    min-height: 100dvh;                 /* moderne */
-    min-height: calc(var(--vh) * 100);  /* fallback avec hook */
-  }
-}
-
-@media (min-width: 1024px) and (max-width: 1440px) {
-  .section-panel {
-    padding: 1.5rem;
-    font-size: 1rem;
-  }
-
-  .text-content {
-    font-size: 1.05rem;
-    line-height: 1.7;
-  }
-
-  .main-title {
-    font-size: 3.5rem;
-  }
-
-  .logo-image {
-    height: 100px;
-  }
-}
-
-@media (max-width: 768px) {
+  /* Lightbox mobile */
   .lightbox { padding: 0; }
-  .lightbox img {
-    width: 100vw;
-    height: auto;
-    max-height: 100vh;
-    border-radius: 0;
-    object-fit: contain;
-  }
-}
-
-/* ----------------------------------------
-   💻 Ajustements spécifiques pour laptop
-   (entre 1024px et 1440px de large)
----------------------------------------- */
-@media (min-width: 1024px) and (max-width: 1440px) {
-  .main-title { font-size: 3.5rem; }
-  .logo-image { height: 90px; }
-  .section-row { height: calc(100vh - 8rem); }
-  .bento-gallery { grid-template-columns: 1fr 1fr; }
-  .service-card img { height: 140px; }
-  .section-title h2 { font-size: 1.6rem; }
-  .boutique-gallery { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+  .lightbox img { width: 100vw; height: auto; max-height: 100vh; border-radius: 0; object-fit: contain; }
 }
 
 /* 📚 Ajustement pour centrer et scaler le contenu de la section story */
@@ -618,7 +506,6 @@ ul {
   align-items: center;
   padding: 2rem;
 }
-
 .section-panel.story-panel .text-content {
   max-width: 800px;
   width: 100%;
@@ -631,106 +518,9 @@ ul {
 /* Défilement doux global (fenêtre) */
 html { scroll-behavior: smooth; }
 
-
-/* ===== Mobile (≤768px) ===== */
-@media (max-width: 768px) {
-  /* Le parent ne doit pas bloquer le sticky */
-  .app-wrapper {
-    height: auto;
-    overflow: visible;            /* ← annule overflow:hidden du global */
-  }
-
-  /* Header compact + collé en haut */
-  .main-header {
-    position: sticky;             /* reste en haut pendant le scroll */
-    top: 0;
-    z-index: 100;
-    background: var(--color-bg);
-    padding: 0.5rem 0;            /* plus fin */
-    border-bottom: 1px solid var(--color-border);
-  }
-  .logo-image {
-    height: 42px;
-    width: auto;
-  }
-  .main-title {
-    font-size: 1.6rem;
-    line-height: 1.2;
-    margin: 0;
-    text-align: center;
-  }
-
-  /* Par défaut en mobile, on CACHE le panneau de détails,
-     puis on le RÉ-AFFICHE pour tout concept ≠ "Bienvenue" */
-  #detail-panel {
-    display: none !important;      /* caché au chargement (Bienvenue) */
-  }
-  #detail-panel[data-concept]:not([data-concept="Bienvenue"]) {
-    display: block !important;     /* s'affiche dès qu'on change de concept */
-  }
-}
-
-@media (max-width: 768px) {
-  .main-header {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    background: var(--color-bg);
-    padding: 0.5rem 0;
-    border-bottom: 1px solid var(--color-border);
-  }
-  /* Ajoute une marge en haut pour ne pas masquer le contenu */
-  .section-row { margin-top: 64px; }  /* ajuste 64px si besoin */
-}
-
-/* ===== Mobile (≤768px) : header compact et fixé en haut ===== */
-@media (max-width: 768px) {
-  .main-header {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 100;
-    background: var(--color-bg);
-    padding: 0.5rem 0;
-    border-bottom: 1px solid var(--color-border);
-  }
-  .logo-image { height: 42px; width: auto; }
-  .main-title { font-size: 1.6rem; line-height: 1.2; margin: 0; text-align: center; }
-}
-
-/* ===== Mobile (≤768px) : cacher "Bienvenue" + header collé en haut ===== */
-@media (max-width: 768px) {
-  /* cache le panneau de détails quand on est sur l’onglet Bienvenue */
-  #detail-panel[data-concept="Bienvenue"] {
-    display: none !important;
-  }
-
-  /* header compact collé en haut */
-  .main-header {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 100;
-    background: var(--color-bg);
-    padding: 0.5rem 0;
-    border-bottom: 1px solid var(--color-border);
-  }
-  .logo-image { height: 42px; width: auto; }
-  .main-title { font-size: 1.6rem; line-height: 1.2; margin: 0; text-align: center; }
-
-  /* décale le contenu pour ne pas passer sous le header fixé */
-  .section-row { margin-top: 64px; } /* ajuste si besoin (≈ hauteur du header) */
-}
-
-@media (max-width: 768px) {
-  .app-wrapper { overflow: visible !important; } /* évite de casser le fixed */
-  .main-header {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 100;
-    background: var(--color-bg);
-    padding: 0.5rem 0;
-    border-bottom: 1px solid var(--color-border);
-  }
-  .logo-image { height: 42px; width: auto; }
-  .main-title { font-size: 1.6rem; line-height: 1.2; margin: 0; text-align: center; }
-
-  /* pousse le contenu sous le header fixé (ajuste si besoin) */
-  .section-row { margin-top: 64px !important; }
-}
+/* === Renfort anti-débordement horizontal global === */
+html, body, #root, .app-wrapper, .section-row { max-width: 100%; overflow-x: hidden !important; }
+*, *::before, *::after { box-sizing: border-box; }
+img, video { max-width: 100%; height: auto; }
+html { overflow-x: clip; }
+[class*="-wrapper"], [class*="-row"], [class*="-panel"] { width: 100%; }

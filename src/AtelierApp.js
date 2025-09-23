@@ -16,7 +16,7 @@ import AdminBoutique from './components/AdminBoutique';
 
 import { FaCut, FaStore, FaShoppingBag } from 'react-icons/fa';
 
-import AdminCalendar from './components/AdminCalendar'; // 👈 Importe ton nouveau composant
+import AdminCalendar from './components/AdminCalendar';
 
 /* === Hook simple : fixe une variable --vh à l'init (pas de resize) === */
 function useMobileViewportFix() {
@@ -70,19 +70,11 @@ Nous sélectionnons chaque pièce avec soin, puis la mettons en valeur dans notr
 Vous souhaitez déposer une tenue ?  
 Contactez-nous ou venez nous rencontrer à l’atelier. Ensemble, faisons circuler la beauté autrement.`,
       video: 'depot-vente-1.mp4',
-      images: [
-        '/depot-vente-1.jpg',
-        '/depot-vente-2.jpg',
-        '/depot-vente-3.jpg'
-      ]
+      images: ['/depot-vente-1.jpg', '/depot-vente-2.jpg', '/depot-vente-3.jpg']
     },
     icon: FaCut,
   },
-  {
-    label: 'Boutique',
-    detail: {},
-    icon: FaStore,
-  },
+  { label: 'Boutique', detail: {}, icon: FaStore },
   {
     label: 'Retouches & Création',
     detail: {
@@ -99,7 +91,11 @@ Nous proposons :
 Du fil à l’émotion, chaque geste est maîtrisé, chaque détail compte.  
 Un travail d’orfèvre textile, où rien ne se perd, tout se transforme.`,
       video: 'retouches-&-création.mp4',
-      images: ['retouches-&-création-1.jpg', 'retouches-&-création-2.jpg', 'retouches-&-création-3.jpg']
+      images: [
+        'retouches-&-création-1.jpg',
+        'retouches-&-création-2.jpg',
+        'retouches-&-création-3.jpg'
+      ]
     },
     icon: FaShoppingBag,
   },
@@ -122,9 +118,40 @@ function MainApp() {
   const [lightboxImage, setLightboxImage] = useState(null);
   const [refreshBoutique, setRefreshBoutique] = useState(false);
 
+  // Mesure dynamique de la hauteur du header -> CSS var --header-h
+  useEffect(() => {
+    const setHeaderVar = () => {
+      const header = document.querySelector('.main-header');
+      if (!header) return;
+      const h = header.offsetHeight || 64;
+      document.documentElement.style.setProperty('--header-h', `${h}px`);
+    };
+    setHeaderVar();
+    const headerEl = document.querySelector('.main-header');
+    const ro = headerEl ? new ResizeObserver(setHeaderVar) : null;
+    if (ro && headerEl) ro.observe(headerEl);
+    window.addEventListener('resize', setHeaderVar);
+    return () => {
+      window.removeEventListener('resize', setHeaderVar);
+      if (ro) ro.disconnect();
+    };
+  }, []);
+
+  // replie le header dès qu’on descend un peu
+  const [headerCollapsed, setHeaderCollapsed] = useState(false);
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY || document.documentElement.scrollTop;
+      setHeaderCollapsed(y > 20);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   const detailRef = useRef(null);
 
-  // ✅ détecte mobile une fois (suffisant ici)
+  // détecte mobile
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 768px)');
@@ -136,7 +163,7 @@ function MainApp() {
     };
   }, []);
 
-  // ✅ scroll en haut sur mobile après changement de concept
+  // scroll en haut sur mobile après changement de concept
   const scrollDetailToTopMobile = () => {
     if (!isMobile) return;
     const el = detailRef.current;
@@ -152,22 +179,61 @@ function MainApp() {
     window.scrollTo({ top: y, behavior: 'smooth' });
   };
 
-  // ✅ scroll sur le bouton "Notre histoire" quand on clique le header (mobile seulement)
-  const scrollToNotreHistoireOnMobile = () => {
+  // ✅ Collapse + scroll vers "Notre histoire" à CHAQUE clic (mobile)
+  const collapseAndScrollToNotreHistoire = () => {
     if (!isMobile) return;
 
+    const header = document.querySelector('.main-header');
+    const logo = header?.querySelector('.logo-image');
     const target = document.getElementById('btn-notre-histoire');
     if (!target) return;
 
-    const header = document.querySelector('.main-header');
-    const offset = header ? header.offsetHeight : 0;
+    const doScroll = () => {
+      const offset = header ? header.offsetHeight : 0;
+      const y = Math.floor(
+        target.getBoundingClientRect().top + window.pageYOffset - offset - 4
+      );
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    };
 
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        const y = Math.floor(target.getBoundingClientRect().top + window.pageYOffset - offset - 4);
-        window.scrollTo({ top: y, behavior: 'smooth' });
-      });
-    });
+    // force l'état replié
+    setHeaderCollapsed(true);
+
+    // si déjà replié, scrolle direct
+    if (headerCollapsed) {
+      requestAnimationFrame(() => requestAnimationFrame(doScroll));
+      return;
+    }
+
+    // sinon on attend la fin de transition (logo ou header)
+    const waitEl = logo || header;
+    if (!waitEl) {
+      setTimeout(doScroll, 260);
+      return;
+    }
+
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      waitEl.removeEventListener('transitionend', finish);
+      requestAnimationFrame(() => requestAnimationFrame(doScroll));
+    };
+
+    // si pas de transition => scroll direct
+    const cs = getComputedStyle(waitEl);
+    const dur = (cs.transitionDuration || '0s').split(',')[0].trim();
+    const del = (cs.transitionDelay || '0s').split(',')[0].trim();
+    const durMs = (parseFloat(dur) || 0) * (dur.endsWith('ms') ? 1 : 1000);
+    const delMs = (parseFloat(del) || 0) * (del.endsWith('ms') ? 1 : 1000);
+    if (durMs + delMs === 0) {
+      finish();
+      return;
+    }
+
+    waitEl.addEventListener('transitionend', finish);
+    // filet de sécu si l’événement ne se déclenche pas
+    setTimeout(finish, durMs + delMs + 80);
   };
 
   const handleConceptChange = (detail, key) => {
@@ -231,7 +297,7 @@ function MainApp() {
     selectedConcept === 'Notre histoire' ? 'Apprenez-en plus sur l’histoire et la mission de notre atelier.' :
     'Atelier Dentelles & Costumes – Créations uniques et personnalisées.';
 
-  // 👇 clé : NE PAS rendre le panneau détail si on est en mobile sur "Bienvenue"
+  // NE PAS rendre le panneau détail si on est en mobile sur "Bienvenue"
   const showDetailPanel = !(isMobile && selectedConcept === 'Bienvenue');
 
   return (
@@ -253,11 +319,11 @@ function MainApp() {
       />
 
       <div
-        className="main-header"
+        className={`main-header ${headerCollapsed ? 'collapsed' : ''}`}
         role="button"
         tabIndex={0}
-        onClick={scrollToNotreHistoireOnMobile}                // 👈 clic sur le header = scroll vers “Notre histoire” (mobile)
-        onKeyDown={(e) => { if (e.key === 'Enter') scrollToNotreHistoireOnMobile(); }}
+        onClick={collapseAndScrollToNotreHistoire}
+        onKeyDown={(e) => { if (e.key === 'Enter') collapseAndScrollToNotreHistoire(); }}
       >
         <img src="/images/Logo-light.svg" alt="Logo Atelier" className="logo-image" />
         <h1 className="main-title">
@@ -316,7 +382,7 @@ export default function AtelierApp() {
   return (
     <Router>
       <Routes>
-        <Route path="/admin-calendar" element={<AdminCalendar />} /> {/* ✅ La nouvelle page admin */} 
+        <Route path="/admin-calendar" element={<AdminCalendar />} />
         <Route path="/" element={<MainApp />} />
         <Route path="/admin" element={<AdminBoutique />} />
       </Routes>
