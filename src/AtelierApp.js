@@ -163,7 +163,7 @@ function MainApp() {
     };
   }, []);
 
-  // scroll en haut sur mobile après changement de concept
+  // scroll utilitaire (offset = header)
   const scrollDetailToTopMobile = () => {
     if (!isMobile) return;
     const el = detailRef.current;
@@ -175,11 +175,23 @@ function MainApp() {
       const pos = getComputedStyle(header).position;
       if (pos === 'fixed' || pos === 'sticky') offset = header.offsetHeight;
     }
-    const y = Math.floor(el.getBoundingClientRect().top + window.pageYOffset - offset);
+    const y = Math.max(0, Math.floor(el.getBoundingClientRect().top + window.pageYOffset - offset));
     window.scrollTo({ top: y, behavior: 'smooth' });
   };
 
-  // ✅ Collapse + scroll vers "Notre histoire" à CHAQUE clic (mobile)
+  // 🔁 Scroll “anti-raté” : réessaie pendant que la grille/images se posent
+  const forceScrollToDetail = (maxRetries = 6, delayMs = 90) => {
+    let tries = 0;
+    const tick = () => {
+      if (!isMobile) return;
+      scrollDetailToTopMobile();
+      tries += 1;
+      if (tries < maxRetries) setTimeout(tick, delayMs);
+    };
+    requestAnimationFrame(() => requestAnimationFrame(tick));
+  };
+
+  // ✅ Collapse + scroll vers "Notre histoire" (mobile)
   const collapseAndScrollToNotreHistoire = () => {
     if (!isMobile) return;
 
@@ -190,22 +202,17 @@ function MainApp() {
 
     const doScroll = () => {
       const offset = header ? header.offsetHeight : 0;
-      const y = Math.floor(
-        target.getBoundingClientRect().top + window.pageYOffset - offset - 4
-      );
+      const y = Math.floor(target.getBoundingClientRect().top + window.pageYOffset - offset - 4);
       window.scrollTo({ top: y, behavior: 'smooth' });
     };
 
-    // force l'état replié
     setHeaderCollapsed(true);
 
-    // si déjà replié, scrolle direct
     if (headerCollapsed) {
       requestAnimationFrame(() => requestAnimationFrame(doScroll));
       return;
     }
 
-    // sinon on attend la fin de transition (logo ou header)
     const waitEl = logo || header;
     if (!waitEl) {
       setTimeout(doScroll, 260);
@@ -220,7 +227,6 @@ function MainApp() {
       requestAnimationFrame(() => requestAnimationFrame(doScroll));
     };
 
-    // si pas de transition => scroll direct
     const cs = getComputedStyle(waitEl);
     const dur = (cs.transitionDuration || '0s').split(',')[0].trim();
     const del = (cs.transitionDelay || '0s').split(',')[0].trim();
@@ -232,9 +238,50 @@ function MainApp() {
     }
 
     waitEl.addEventListener('transitionend', finish);
-    // filet de sécu si l’événement ne se déclenche pas
     setTimeout(finish, durMs + delMs + 80);
   };
+
+  // 👉 Scroll fiable vers Boutique
+  useEffect(() => {
+    if (!isMobile) return;
+    if (selectedConcept !== 'Boutique') return;
+    forceScrollToDetail(7, 100);
+  }, [selectedConcept, isMobile, refreshBoutique]);
+
+  // 👉 Mode "overlay" pour Notre histoire (image plein écran + texte/pagination au-dessus)
+  useEffect(() => {
+    if (!isMobile) return;
+    const panel = document.querySelector('#detail-panel');
+    if (!panel) return;
+
+    // Nettoyage quel que soit l’état précédent
+    panel.classList.remove('story-overlay-mode');
+    const previousCover = panel.querySelector('.chapter-cover');
+    if (previousCover) previousCover.classList.remove('chapter-cover');
+
+    if (selectedConcept !== 'Notre histoire') return;
+
+    // Ajoute une classe sur le panel pour activer le CSS d’overlay
+    panel.classList.add('story-overlay-mode');
+
+    // Cherche une image à transformer en cover (robuste)
+    const img =
+      panel.querySelector('.section-panel.story-panel img') ||
+      panel.querySelector('.story-fullheight img') ||
+      panel.querySelector('img');
+
+    if (img) img.classList.add('chapter-cover');
+
+    // Safety: relance un scroll après paint si on arrive depuis tout en bas
+    requestAnimationFrame(() => requestAnimationFrame(scrollDetailToTopMobile));
+
+    // cleanup quand on quitte la section
+    return () => {
+      panel.classList.remove('story-overlay-mode');
+      const cover = panel.querySelector('.chapter-cover');
+      if (cover) cover.classList.remove('chapter-cover');
+    };
+  }, [selectedConcept, isMobile]);
 
   const handleConceptChange = (detail, key) => {
     const concept = concepts.find(c => c.label === key);
@@ -248,10 +295,10 @@ function MainApp() {
 
     if (key === 'Boutique') {
       setRefreshBoutique(true);
-      setTimeout(() => setRefreshBoutique(false), 100);
+      setTimeout(() => setRefreshBoutique(false), 50);
+    } else {
+      setTimeout(scrollDetailToTopMobile, 60);
     }
-
-    setTimeout(scrollDetailToTopMobile, 60);
   };
 
   const renderContent = () => {
@@ -275,7 +322,11 @@ function MainApp() {
       case 'Services':
         return <ServicesPage key="Services" />;
       case 'Notre histoire':
-        return <OurStory key="OurStory" />;
+        return (
+          <div className="story-fullheight">
+            <OurStory key="OurStory" />
+          </div>
+        );
       default:
         return <StandardDetails key={selectedConcept} content={conceptDetails} conceptKey={selectedConcept} />;
     }

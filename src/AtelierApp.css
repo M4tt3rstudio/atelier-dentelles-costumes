@@ -34,11 +34,11 @@ body {
 ---------------------------------------- */
 .app-wrapper {
   height: 100vh;
-  width: 100%;                 /* évite le débordement dû à 100vw */
+  width: 100%;
   display: flex;
   flex-direction: column;
-  overflow-x: hidden;          /* pas de scroll horizontal */
-  overflow-y: hidden;          /* scroll géré par sections (mobile: override) */
+  overflow-x: hidden;
+  overflow-y: hidden;
   background: transparent;
 }
 
@@ -425,7 +425,6 @@ ul { padding-left: 1rem; list-style: none; }
 ---------------------------------------- */
 .fade-in { animation: fadeIn 0.3s ease forwards; }
 .fade-out { opacity: 0; }
-
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 /* ----------------------------------------
@@ -453,10 +452,10 @@ ul { padding-left: 1rem; list-style: none; }
 }
 
 /* ----------------------------------------
-   📱 Mobile (≤768px) : header fixé + offset dynamique
+   📱 Mobile (≤768px) : header fixé + overlay Notre histoire
 ---------------------------------------- */
 @media (max-width: 768px) {
-  /* le wrapper redevient scrollable */
+  /* la fenêtre devient scrollable */
   .app-wrapper { height: auto; overflow: visible; }
   body { overflow-y: auto; }
 
@@ -466,16 +465,16 @@ ul { padding-left: 1rem; list-style: none; }
     z-index: 100;
     background: var(--color-bg);
     padding: 0.5rem 0;
-    margin: 0; /* colle vraiment en haut */
+    margin: 0; /* colle en haut */
     border-bottom: 1px solid var(--color-border);
   }
   .logo-image { height: 42px; width: auto; }
   .main-title { font-size: 1.6rem; line-height: 1.2; margin: 0; text-align: center; }
 
-  /* Le contenu démarre exactement sous le header (hauteur dynamique) */
+  /* Le contenu démarre sous le header */
   .section-row { margin-top: var(--header-h) !important; height: auto; overflow: visible; flex-direction: column; padding: 1rem; }
 
-  /* Section “Bienvenue” plein écran − header */
+  /* “Bienvenue” plein écran − header */
   #detail-panel[data-concept="Bienvenue"] {
     display: block !important;
     min-height: calc(100dvh - var(--header-h));
@@ -483,23 +482,87 @@ ul { padding-left: 1rem; list-style: none; }
     overflow-y: auto;
   }
 
-  /* Scrollbars custom */
-  .section-panel::-webkit-scrollbar { width: 8px; }
-  .section-panel::-webkit-scrollbar-track { background: rgba(203, 190, 154, 0.05); }
-  .section-panel::-webkit-scrollbar-thumb {
-    background-color: rgba(229, 193, 124, 0.5);
-    border-radius: 3px;
-    transition: background-color 0.3s;
+  /* ======== OVERLAY MODE pour Notre histoire ======== */
+  #detail-panel.story-overlay-mode { position: relative; }
+
+  /* Image de couverture plein écran */
+  #detail-panel.story-overlay-mode .chapter-cover {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    z-index: -1 !important;
+    filter: brightness(0.55);
   }
-  .section-panel::-webkit-scrollbar-thumb:hover { background-color: rgba(229, 193, 124, 0.9); }
-  .section-panel { scrollbar-width: thin; scrollbar-color: rgba(229, 193, 124, 0.5) rgba(203, 190, 154, 0.05); }
+
+  /* Texte & titres par-dessus + fond dégradé doux + espace pagination */
+  #detail-panel.story-overlay-mode .text-content,
+  #detail-panel.story-overlay-mode .section-panel.story-panel .text-content {
+    position: relative;
+    z-index: 1;
+    background: linear-gradient(
+      to bottom,
+      rgba(15,16,6,0.70) 0%,
+      rgba(15,16,6,0.35) 40%,
+      rgba(15,16,6,0.00) 100%
+    );
+    padding: 0.6rem 0 4.8rem; /* place pour pagination */
+    font-size: clamp(0.82rem, 3.2vw, 1rem);
+    line-height: 1.5;
+  }
+
+  #detail-panel.story-overlay-mode h1,
+  #detail-panel.story-overlay-mode h2,
+  #detail-panel.story-overlay-mode .chapter-title {
+    font-size: clamp(1rem, 3.4vw, 1.25rem) !important;
+    line-height: 1.18 !important;
+    font-weight: 700 !important;
+    text-transform: none !important;
+    margin: 0.5rem 0 0.45rem !important;
+    letter-spacing: 0.2px !important;
+  }
+  #detail-panel.story-overlay-mode h3 {
+    font-size: clamp(0.9rem, 3vw, 1.1rem) !important;
+    line-height: 1.2 !important;
+    margin: 0.35rem 0 0.35rem !important;
+    font-weight: 600 !important;
+  }
+
+  /* Pagination en overlay (si présente) */
+  .story-pagination, .pagination {
+    position: fixed;
+    bottom: 0.75rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 120;
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.35rem 0.6rem;
+    background: rgba(0,0,0,0.55);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    backdrop-filter: blur(4px);
+    font-size: 0.8rem;
+    line-height: 1;
+  }
+  .story-pagination .dot, .pagination .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    border: 1px solid var(--color-border);
+    background: rgba(255,255,255,0.25);
+  }
+  .story-pagination .dot.active, .pagination .dot.active {
+    background: var(--color-hover);
+    border-color: var(--color-hover);
+  }
 
   /* Lightbox mobile */
   .lightbox { padding: 0; }
   .lightbox img { width: 100vw; height: auto; max-height: 100vh; border-radius: 0; object-fit: contain; }
 }
 
-/* 📚 Ajustement pour centrer et scaler le contenu de la section story */
+/* 📚 Ajustement desktop pour la story */
 .section-panel.story-panel {
   display: flex;
   flex-direction: column;
