@@ -396,7 +396,7 @@ ul { padding-left: 1rem; list-style: none; }
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.95);
-  z-index: 9999;
+  z-index: 1999;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -442,6 +442,35 @@ ul { padding-left: 1rem; list-style: none; }
 .footer .social-links { display: flex; gap: 1rem; flex-wrap: wrap; }
 .footer .clickable { font-size: 0.95rem; font-weight: bold; }
 
+/* === BARRE LÉGALE (politiques + powered) === */
+.legal-bar {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  display: flex;
+  justify-content: center;
+  gap: 1.25rem;
+  padding: .6rem .75rem;
+  background: rgba(0,0,0,0.7);
+  border-top: 1px solid rgba(203,190,154,0.35);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transform: translateY(100%);
+  opacity: 0;
+  visibility: hidden;
+  transition: transform .25s ease, opacity .25s ease, visibility .25s ease;
+  z-index: 2500;
+}
+.legal-bar.visible {
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+}
+.legal-bar .clickable {
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
 /* ----------------------------------------
    💻 Desktop : empêcher le scroll global
 ---------------------------------------- */
@@ -452,10 +481,10 @@ ul { padding-left: 1rem; list-style: none; }
 }
 
 /* ----------------------------------------
-   📱 Mobile (≤768px) : header fixé + overlay Notre histoire
+   📱 Mobile (≤768px)
 ---------------------------------------- */
 @media (max-width: 768px) {
-  /* la fenêtre devient scrollable */
+  /* Fenêtre scrollable */
   .app-wrapper { height: auto; overflow: visible; }
   body { overflow-y: auto; }
 
@@ -465,14 +494,30 @@ ul { padding-left: 1rem; list-style: none; }
     z-index: 100;
     background: var(--color-bg);
     padding: 0.5rem 0;
-    margin: 0; /* colle en haut */
+    margin: 0;
     border-bottom: 1px solid var(--color-border);
   }
   .logo-image { height: 42px; width: auto; }
   .main-title { font-size: 1.6rem; line-height: 1.2; margin: 0; text-align: center; }
 
-  /* Le contenu démarre sous le header */
-  .section-row { margin-top: var(--header-h) !important; height: auto; overflow: visible; flex-direction: column; padding: 1rem; }
+  /* Contenu commence sous le header */
+  .section-row {
+    margin-top: var(--header-h) !important;
+    height: auto;
+    overflow: visible;
+    flex-direction: column;
+    padding: 0 1rem 1rem;
+  }
+
+  /* “Bienvenue” : supprime la marge haute du premier bloc/titre */
+  .section-row > *:first-child .section-panel > *:first-child { margin-top: 0 !important; }
+  .section-row > *:first-child h1:first-child,
+  .section-row > *:first-child h2:first-child,
+  .section-row > *:first-child .section-title:first-child,
+  .section-row > *:first-child .section-title h2:first-child {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
 
   /* “Bienvenue” plein écran − header */
   #detail-panel[data-concept="Bienvenue"] {
@@ -485,7 +530,6 @@ ul { padding-left: 1rem; list-style: none; }
   /* ======== OVERLAY MODE pour Notre histoire ======== */
   #detail-panel.story-overlay-mode { position: relative; }
 
-  /* Image de couverture plein écran */
   #detail-panel.story-overlay-mode .chapter-cover {
     position: fixed !important;
     inset: 0 !important;
@@ -497,7 +541,6 @@ ul { padding-left: 1rem; list-style: none; }
     filter: brightness(0.55);
   }
 
-  /* Texte & titres par-dessus + fond dégradé doux + espace pagination */
   #detail-panel.story-overlay-mode .text-content,
   #detail-panel.story-overlay-mode .section-panel.story-panel .text-content {
     position: relative;
@@ -530,7 +573,6 @@ ul { padding-left: 1rem; list-style: none; }
     font-weight: 600 !important;
   }
 
-  /* Pagination en overlay (si présente) */
   .story-pagination, .pagination {
     position: fixed;
     bottom: 0.75rem;
@@ -587,3 +629,106 @@ html, body, #root, .app-wrapper, .section-row { max-width: 100%; overflow-x: hid
 img, video { max-width: 100%; height: auto; }
 html { overflow-x: clip; }
 [class*="-wrapper"], [class*="-row"], [class*="-panel"] { width: 100%; }
+
+/* === POPUP MODAL Politique — version stylée === */
+.modal-open { overflow: hidden; } /* bloque le scroll derrière la modale */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  z-index: 3000; /* au-dessus de tout, y compris .legal-bar */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 180ms ease-out;
+}
+
+.modal-card {
+  width: min(720px, 92vw);
+  max-height: min(80vh, 820px);
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(229,193,124,0.08) 0%, rgba(229,193,124,0.02) 100%),
+    #111;
+  color: var(--color-text);
+  border: 1px solid rgba(203,190,154,0.35);
+  border-radius: 14px;
+  box-shadow:
+    0 20px 50px rgba(0,0,0,0.55),
+    inset 0 1px 0 rgba(255,255,255,0.03);
+  position: relative;
+  transform: translateY(10px);
+  opacity: 0;
+  animation: modalIn 220ms ease-out forwards;
+}
+
+.modal-header {
+  padding: 1rem 1.25rem 0.25rem;
+  border-bottom: 1px solid rgba(203,190,154,0.18);
+}
+.modal-header h2 {
+  margin: 0;
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  letter-spacing: .2px;
+  color: var(--color-hover);
+  font-size: clamp(1.2rem, 2.5vw, 1.5rem);
+  text-transform: none;
+}
+
+.modal-content {
+  padding: 1rem 1.25rem 1.25rem;
+  overflow-y: auto;
+  max-height: calc(min(80vh, 820px) - 56px);
+}
+.modal-content p {
+  margin: 0 0 .9rem;
+  line-height: 1.65;
+  color: var(--color-muted);
+}
+.modal-content a {
+  color: var(--color-hover);
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px dotted var(--color-hover);
+}
+.modal-content a:hover { border-bottom-style: solid; }
+
+.modal-close {
+  position: absolute;
+  top: .6rem; right: .6rem;
+  width: 36px; height: 36px;
+  border-radius: 999px;
+  border: 1px solid rgba(203,190,154,0.35);
+  background: rgba(0,0,0,0.35);
+  color: var(--color-text);
+  font-size: 1.2rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform .15s ease, background .2s ease, border-color .2s ease;
+}
+.modal-close:hover {
+  transform: scale(1.05);
+  background: rgba(229,193,124,0.15);
+  border-color: var(--color-hover);
+}
+
+/* scrollbar interne élégante */
+.modal-content::-webkit-scrollbar { width: 10px; }
+.modal-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.04); }
+.modal-content::-webkit-scrollbar-thumb {
+  background: rgba(229,193,124,0.45);
+  border-radius: 8px;
+}
+.modal-content { scrollbar-color: rgba(229,193,124,0.45) rgba(255,255,255,0.04); }
+
+@keyframes modalIn {
+  from { transform: translateY(10px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}

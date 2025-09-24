@@ -13,10 +13,9 @@ import FaqPage from './components/FaqPage';
 import ServicesPage from './components/ServicesPage';
 import OurStory from './components/OurStory';
 import AdminBoutique from './components/AdminBoutique';
+import AdminCalendar from './components/AdminCalendar';
 
 import { FaCut, FaStore, FaShoppingBag } from 'react-icons/fa';
-
-import AdminCalendar from './components/AdminCalendar';
 
 /* === Hook simple : fixe une variable --vh à l'init (pas de resize) === */
 function useMobileViewportFix() {
@@ -118,6 +117,61 @@ function MainApp() {
   const [lightboxImage, setLightboxImage] = useState(null);
   const [refreshBoutique, setRefreshBoutique] = useState(false);
 
+  // === Barre légale & popup ===
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showLegalBar, setShowLegalBar] = useState(false);
+
+  // Bloque le scroll quand la modale est ouverte
+  useEffect(() => {
+    document.body.classList.toggle('modal-open', showPrivacy);
+    return () => document.body.classList.remove('modal-open');
+  }, [showPrivacy]);
+
+  // Afficher la barre légale seulement quand on est en "bas"
+  useEffect(() => {
+    const threshold = 5;
+
+    const isWindowAtBottom = () => {
+      const doc = document.documentElement;
+      return (window.scrollY + window.innerHeight >= doc.scrollHeight - threshold) && window.scrollY > 0;
+    };
+
+    const isElemScrolledToBottom = (el) => {
+      if (!el) return false;
+      const { scrollTop, clientHeight, scrollHeight } = el;
+      if (scrollHeight <= clientHeight) return false;
+      return (scrollTop + clientHeight >= scrollHeight - threshold) && scrollTop > 0;
+    };
+
+    const compute = () => {
+      let show = isWindowAtBottom();
+      if (!show) {
+        const panels = document.querySelectorAll('.section-panel, #detail-panel');
+        for (const p of panels) {
+          if (isElemScrolledToBottom(p)) { show = true; break; }
+        }
+      }
+      setShowLegalBar(show);
+      document.body.classList.toggle('has-legal', show);
+    };
+
+    const onScroll = () => requestAnimationFrame(compute);
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+
+    const panels = Array.from(document.querySelectorAll('.section-panel, #detail-panel'));
+    panels.forEach(p => p.addEventListener('scroll', onScroll, { passive: true }));
+
+    compute();
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      panels.forEach(p => p.removeEventListener('scroll', onScroll));
+      document.body.classList.remove('has-legal');
+    };
+  }, []);
+
   // Mesure dynamique de la hauteur du header -> CSS var --header-h
   useEffect(() => {
     const setHeaderVar = () => {
@@ -179,7 +233,18 @@ function MainApp() {
     window.scrollTo({ top: y, behavior: 'smooth' });
   };
 
-  // 🔁 Scroll “anti-raté” : réessaie pendant que la grille/images se posent
+  /* 🔧 Scroll précis pour “Bienvenue” (le contenu est dans la 1re colonne mobile) */
+  const scrollBienvenueToTop = () => {
+    if (!isMobile) return;
+    const header = document.querySelector('.main-header');
+    const container = document.querySelector('.section-row'); // bloc qui contient le titre “L’ATELIER”
+    if (!container) return;
+    const offset = header ? header.offsetHeight : 0;
+    const y = Math.max(0, Math.floor(container.getBoundingClientRect().top + window.pageYOffset - offset));
+    window.scrollTo({ top: y, behavior: 'smooth' });
+  };
+
+  // 🔁 Scroll “anti-raté” pour Boutique
   const forceScrollToDetail = (maxRetries = 6, delayMs = 90) => {
     let tries = 0;
     const tick = () => {
@@ -228,10 +293,10 @@ function MainApp() {
     };
 
     const cs = getComputedStyle(waitEl);
-    const dur = (cs.transitionDuration || '0s').split(',')[0].trim();
-    const del = (cs.transitionDelay || '0s').split(',')[0].trim();
-    const durMs = (parseFloat(dur) || 0) * (dur.endsWith('ms') ? 1 : 1000);
-    const delMs = (parseFloat(del) || 0) * (del.endsWith('ms') ? 1 : 1000);
+    const durStr = (cs.transitionDuration || '0s').split(',')[0].trim();
+    const delStr = (cs.transitionDelay || '0s').split(',')[0].trim();
+    const durMs = (parseFloat(durStr) || 0) * (durStr.endsWith('ms') ? 1 : 1000);
+    const delMs = (parseFloat(delStr) || 0) * (delStr.endsWith('ms') ? 1 : 1000);
     if (durMs + delMs === 0) {
       finish();
       return;
@@ -248,23 +313,20 @@ function MainApp() {
     forceScrollToDetail(7, 100);
   }, [selectedConcept, isMobile, refreshBoutique]);
 
-  // 👉 Mode "overlay" pour Notre histoire (image plein écran + texte/pagination au-dessus)
+  // 👉 Mode overlay pour Notre histoire (mobile uniquement)
   useEffect(() => {
     if (!isMobile) return;
     const panel = document.querySelector('#detail-panel');
     if (!panel) return;
 
-    // Nettoyage quel que soit l’état précédent
     panel.classList.remove('story-overlay-mode');
     const previousCover = panel.querySelector('.chapter-cover');
     if (previousCover) previousCover.classList.remove('chapter-cover');
 
     if (selectedConcept !== 'Notre histoire') return;
 
-    // Ajoute une classe sur le panel pour activer le CSS d’overlay
     panel.classList.add('story-overlay-mode');
 
-    // Cherche une image à transformer en cover (robuste)
     const img =
       panel.querySelector('.section-panel.story-panel img') ||
       panel.querySelector('.story-fullheight img') ||
@@ -272,10 +334,8 @@ function MainApp() {
 
     if (img) img.classList.add('chapter-cover');
 
-    // Safety: relance un scroll après paint si on arrive depuis tout en bas
     requestAnimationFrame(() => requestAnimationFrame(scrollDetailToTopMobile));
 
-    // cleanup quand on quitte la section
     return () => {
       panel.classList.remove('story-overlay-mode');
       const cover = panel.querySelector('.chapter-cover');
@@ -296,6 +356,8 @@ function MainApp() {
     if (key === 'Boutique') {
       setRefreshBoutique(true);
       setTimeout(() => setRefreshBoutique(false), 50);
+    } else if (key === 'Bienvenue') {
+      setTimeout(scrollBienvenueToTop, 40);
     } else {
       setTimeout(scrollDetailToTopMobile, 60);
     }
@@ -425,6 +487,50 @@ function MainApp() {
           <a className="clickable" href="https://www.facebook.com/share/15pUDc96q9/">Facebook</a>
         </div>
       </div>
+
+      {/* === BARRE LÉGALE indépendante === */}
+      <div className={`legal-bar ${showLegalBar ? 'visible' : ''}`}>
+        <button className="clickable" onClick={() => setShowPrivacy(true)}>
+          Politiques de confidentialité
+        </button>
+        <a className="clickable" href="https://m4tt3r.com" target="_blank" rel="noopener noreferrer">
+          Powered by M4TT3R
+        </a>
+      </div>
+
+      {/* === POPUP POLITIQUES stylée === */}
+      {showPrivacy && (
+        <div
+          className="modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="privacy-title"
+          onClick={() => setShowPrivacy(false)}
+        >
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" aria-label="Fermer" onClick={() => setShowPrivacy(false)}>×</button>
+            <div className="modal-header">
+              <h2 id="privacy-title">Politiques de confidentialité</h2>
+            </div>
+            <div className="modal-content">
+              <p>
+                Nous respectons vos données personnelles. Vos informations ne sont jamais
+                vendues et ne sont partagées qu’avec votre consentement explicite.
+              </p>
+              <p>
+                Conformément au RGPD, vous pouvez exercer vos droits d’accès, de rectification
+                et de suppression en nous écrivant à
+                {' '}
+                <a href="mailto:contact@atelier-dentelles-costumes.fr">contact@atelier-dentelles-costumes.fr</a>.
+              </p>
+              <p>
+                Pour toute question sur notre politique de confidentialité, vous pouvez également
+                nous contacter via le formulaire de la page “FAQ 💬 & Contact”.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
