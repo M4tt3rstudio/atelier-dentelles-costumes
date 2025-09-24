@@ -14,6 +14,7 @@ import ServicesPage from './components/ServicesPage';
 import OurStory from './components/OurStory';
 import AdminBoutique from './components/AdminBoutique';
 import AdminCalendar from './components/AdminCalendar';
+import PrivacyPolicyModal from './components/PrivacyPolicyModal'; // ⬅️ Si ton fichier est dans /components/, mets: './components/Politique'
 
 import { FaCut, FaStore, FaShoppingBag } from 'react-icons/fa';
 
@@ -498,39 +499,11 @@ function MainApp() {
         </a>
       </div>
 
-      {/* === POPUP POLITIQUES stylée === */}
-      {showPrivacy && (
-        <div
-          className="modal-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="privacy-title"
-          onClick={() => setShowPrivacy(false)}
-        >
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" aria-label="Fermer" onClick={() => setShowPrivacy(false)}>×</button>
-            <div className="modal-header">
-              <h2 id="privacy-title">Politiques de confidentialité</h2>
-            </div>
-            <div className="modal-content">
-              <p>
-                Nous respectons vos données personnelles. Vos informations ne sont jamais
-                vendues et ne sont partagées qu’avec votre consentement explicite.
-              </p>
-              <p>
-                Conformément au RGPD, vous pouvez exercer vos droits d’accès, de rectification
-                et de suppression en nous écrivant à
-                {' '}
-                <a href="mailto:contact@atelier-dentelles-costumes.fr">contact@atelier-dentelles-costumes.fr</a>.
-              </p>
-              <p>
-                Pour toute question sur notre politique de confidentialité, vous pouvez également
-                nous contacter via le formulaire de la page “FAQ 💬 & Contact”.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* === POPUP POLITIQUES via composant === */}
+      <PrivacyPolicyModal
+        open={showPrivacy}
+        onClose={() => setShowPrivacy(false)}
+      />
     </div>
   );
 }
