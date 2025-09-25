@@ -228,7 +228,7 @@ function MainApp() {
     const header = document.querySelector('.main-header');
     if (header) {
       const pos = getComputedStyle(header).position;
-      if (pos === 'fixed' || pos === 'sticky') offset = header.offsetHeight;
+      if (pos === 'fixed' || 'sticky') offset = header.offsetHeight;
     }
     const y = Math.max(0, Math.floor(el.getBoundingClientRect().top + window.pageYOffset - offset));
     window.scrollTo({ top: y, behavior: 'smooth' });
@@ -414,15 +414,60 @@ function MainApp() {
   // NE PAS rendre le panneau détail si on est en mobile sur "Bienvenue"
   const showDetailPanel = !(isMobile && selectedConcept === 'Bienvenue');
 
+  /* ===== JSON-LD : déclare M4TT3R comme créateur du site ===== */
+  const websiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Atelier Dentelles & Costumes",
+    "url": "https://atelierdentellesetcostumes.fr/", // ← mets l’URL canonique de l’atelier
+    "creator": {
+      "@type": "Organization",
+      "name": "M4TT3R",
+      "url": "https://m4tt3r.com",
+      "logo": "https://atelierdentellesetcostumes.fr/images/M4TT3R-logo.png" // ou https://m4tt3r.com/… si hébergé chez M4TT3R
+    },
+    "copyrightHolder": {
+      "@type": "Organization",
+      "name": "M4TT3R",
+      "url": "https://m4tt3r.com"
+    }
+  };
+
+  /* (Optionnel) JSON-LD Organization pour l’atelier */
+  const orgJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Atelier Dentelles & Costumes",
+    "url": "https://atelierdentellesetcostumes.fr/",
+    "logo": "https://atelierdentellesetcostumes.fr/images/Logo-light.png", // 🔁 de préférence PNG/JPG ≥112x112
+    "sameAs": [
+      "https://www.instagram.com/atelier_dentelles_et_costumes/",
+      "https://www.facebook.com/share/15pUDc96q9/"
+    ]
+  };
+
   return (
     <div className="app-wrapper">
       <Helmet>
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />
+        <meta name="author" content="M4TT3R (m4tt3r.com)" />
+
+        {/* Open Graph (réseaux sociaux) */}
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={pageDescription} />
         <meta property="og:image" content="/images/Logo-light.svg" />
         <meta property="og:type" content="website" />
+
+        {/* JSON-LD : WebSite avec créateur M4TT3R */}
+        <script type="application/ld+json">
+          {JSON.stringify(websiteJsonLd)}
+        </script>
+
+        {/* JSON-LD : Organization de l’atelier (cohérence logo+réseaux) */}
+        <script type="application/ld+json">
+          {JSON.stringify(orgJsonLd)}
+        </script>
       </Helmet>
 
       <Menu 
