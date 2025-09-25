@@ -1,7 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import emailjs from '@emailjs/browser'; // <-- remplace 'emailjs-com'
+import emailjs from '@emailjs/browser';
 import { supabase } from './supabaseClient';
 import AdvancedCalendar from './AdvancedCalendar';
+
+/* ====== EmailJS (compte SMTP Ionos) ====== */
+const SERVICE_ID = 'service_8o1gjub';        // ton service SMTP (Ionos)
+const TEMPLATE_ADMIN = 'template_1noo7zq';   // template admin (notification interne)
+const TEMPLATE_CLIENT = 'template_vxdrrgi';  // template client (accusé de réception)
+const EMAILJS_PUBLIC_KEY = 'hYxOlttlW-ev6_9GL'; // ta Public Key EmailJS
 
 export default function ConceptForm({ conceptKey }) {
   const [formMessage, setFormMessage] = useState('');
@@ -9,14 +15,9 @@ export default function ConceptForm({ conceptKey }) {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedHour, setSelectedHour] = useState(null);
 
-  // Option: init une fois (sinon passe la publicKey dans send(..., { publicKey }))
+  // Initialisation EmailJS
   useEffect(() => {
-    try {
-      emailjs.init('_q6rQhvs-jM2i0LdQ'); // <- ta PUBLIC key
-    } catch (e) {
-      // rien de bloquant si tu fournis la clé dans send()
-      console.info('EmailJS already initialized or will use inline key.');
-    }
+    try { emailjs.init(EMAILJS_PUBLIC_KEY); } catch {}
   }, []);
 
   const sendEmail = async (e) => {
@@ -33,9 +34,9 @@ export default function ConceptForm({ conceptKey }) {
     }
 
     try {
-      // --------------------------
-      // 1) Uploads Supabase (en parallèle)
-      // --------------------------
+      /* --------------------------
+         1) Uploads Supabase
+         -------------------------- */
       const photoFiles = Array.from(form.photos?.files || []);
       const factureFile = form.facture?.files?.[0];
 
@@ -61,11 +62,11 @@ export default function ConceptForm({ conceptKey }) {
         })(),
       ]);
 
-      // --------------------------
-      // 2) Params partagés
-      // --------------------------
+      /* --------------------------
+         2) Paramètres communs
+         -------------------------- */
       const templateParams = {
-        user_email: email, // adresse saisie par l'utilisateur (affichée dans le corps)
+        user_email: email,
         description,
         rdv_date: selectedDate ? selectedDate.toLocaleDateString('fr-FR') : '',
         rdv_hour: selectedHour,
@@ -79,28 +80,25 @@ export default function ConceptForm({ conceptKey }) {
         facture_url: factureUrl || ''
       };
 
-      // --------------------------
-      // 3) Envois EmailJS (admin + client)
-      // --------------------------
-      const adminParams = { ...templateParams }; // ton template admin envoie vers toi (To email fixé côté EmailJS)
-      const userParams  = {
-        ...templateParams,
-        to_email: email,       // <-- DESTINATAIRE client (doit matcher {{to_email}} dans le template client)
-        reply_to: email        // facultatif: répondre va au client
-      };
+      /* --------------------------
+         3) Envois EmailJS (admin + client)
+         -------------------------- */
+      const adminParams = { ...templateParams };
+      const userParams  = { ...templateParams, to_email: email, reply_to: email };
 
-      // en parallèle (tu peux aussi faire en séquentiel si tu préfères)
+      const opts = { publicKey: EMAILJS_PUBLIC_KEY };
+
       const [adminRes, userRes] = await Promise.all([
-        emailjs.send('service_l8zklu4', 'template_dw8vcls', adminParams /*, { publicKey: '_q6rQhvs-jM2i0LdQ' }*/),
-        emailjs.send('service_l8zklu4', 'template_vl9ikyn', userParams  /*, { publicKey: '_q6rQhvs-jM2i0LdQ' }*/)
+        emailjs.send(SERVICE_ID, TEMPLATE_ADMIN, adminParams, opts),
+        emailjs.send(SERVICE_ID, TEMPLATE_CLIENT, userParams, opts),
       ]);
 
       console.info('Admin mail:', adminRes?.status, adminRes?.text);
       console.info('User  mail:', userRes?.status, userRes?.text);
 
-      // --------------------------
-      // 4) UI
-      // --------------------------
+      /* --------------------------
+         4) UI
+         -------------------------- */
       setFormStatus('success');
       setFormMessage('✅ Message envoyé avec succès !');
       form.reset();
