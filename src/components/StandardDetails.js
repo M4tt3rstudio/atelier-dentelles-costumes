@@ -16,14 +16,27 @@ export default function StandardDetails({ content, conceptKey }) {
     setSelectedSlot(null); // reset slot à l’ouverture/fermeture
   };
 
+  // -- rendu du titre : version spéciale pour "Retouches & Création"
+  const Title = () => {
+    if (conceptKey === 'Retouches & Création') {
+      return (
+        <h2 className="sd-title sd-title--retouches">
+          <span className="sd-title__part">Retouches</span>
+          <span className="sd-title__part">&</span>
+          <span className="sd-title__part">Création</span>
+        </h2>
+      );
+    }
+    return <h2 className="sd-title">{conceptKey}</h2>;
+  };
+
   return (
     <div
       className={`section-panel ${conceptKey === 'Notre histoire' ? 'story-panel' : ''}`}
       ref={wrapperRef}
     >
       <div className="section-title sticky-title title-with-button">
-        {/* ✅ supprimé "Détail -" */}
-        <h2>{conceptKey}</h2>
+        <Title />
         {conceptsWithForm.includes(conceptKey) && (
           <button className="clickable form-toggle-button" onClick={toggleForm}>
             {showForm ? 'Masquer le formulaire' : 'Afficher le formulaire'}

@@ -141,3 +141,19 @@
     max-width: 100%;
   }
 }
+
+/* Titre par défaut */
+.sd-title {}
+
+/* Spécifique à Retouches & Création */
+.sd-title--retouches .sd-title__part {
+  display: inline;
+}
+
+/* En mobile : chaque mot sur sa propre ligne */
+@media (max-width: 768px) {
+  .sd-title--retouches .sd-title__part {
+    display: block;     /* <- force le passage à la ligne */
+    line-height: 1.05;  /* optionnel, resserre un peu */
+  }
+}
