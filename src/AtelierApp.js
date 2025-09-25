@@ -14,7 +14,7 @@ import ServicesPage from './components/ServicesPage';
 import OurStory from './components/OurStory';
 import AdminBoutique from './components/AdminBoutique';
 import AdminCalendar from './components/AdminCalendar';
-import PrivacyPolicyModal from './components/PrivacyPolicyModal'; // ⬅️ Si ton fichier est dans /components/, mets: './components/Politique'
+import PrivacyPolicyModal from './components/PrivacyPolicyModal';
 
 import { FaCut, FaStore, FaShoppingBag } from 'react-icons/fa';
 
@@ -25,7 +25,7 @@ function useMobileViewportFix() {
       const vh = window.innerHeight * 0.01;
       document.documentElement.style.setProperty('--vh', `${vh}px`);
     };
-    setVh(); // init seulement
+    setVh();
     window.addEventListener('orientationchange', setVh);
     return () => window.removeEventListener('orientationchange', setVh);
   }, []);
@@ -118,32 +118,26 @@ function MainApp() {
   const [lightboxImage, setLightboxImage] = useState(null);
   const [refreshBoutique, setRefreshBoutique] = useState(false);
 
-  // === Barre légale & popup ===
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showLegalBar, setShowLegalBar] = useState(false);
 
-  // Bloque le scroll quand la modale est ouverte
   useEffect(() => {
     document.body.classList.toggle('modal-open', showPrivacy);
     return () => document.body.classList.remove('modal-open');
   }, [showPrivacy]);
 
-  // Afficher la barre légale seulement quand on est en "bas"
   useEffect(() => {
     const threshold = 5;
-
     const isWindowAtBottom = () => {
       const doc = document.documentElement;
       return (window.scrollY + window.innerHeight >= doc.scrollHeight - threshold) && window.scrollY > 0;
     };
-
     const isElemScrolledToBottom = (el) => {
       if (!el) return false;
       const { scrollTop, clientHeight, scrollHeight } = el;
       if (scrollHeight <= clientHeight) return false;
       return (scrollTop + clientHeight >= scrollHeight - threshold) && scrollTop > 0;
     };
-
     const compute = () => {
       let show = isWindowAtBottom();
       if (!show) {
@@ -155,15 +149,11 @@ function MainApp() {
       setShowLegalBar(show);
       document.body.classList.toggle('has-legal', show);
     };
-
     const onScroll = () => requestAnimationFrame(compute);
-
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll);
-
     const panels = Array.from(document.querySelectorAll('.section-panel, #detail-panel'));
     panels.forEach(p => p.addEventListener('scroll', onScroll, { passive: true }));
-
     compute();
     return () => {
       window.removeEventListener('scroll', onScroll);
@@ -173,26 +163,6 @@ function MainApp() {
     };
   }, []);
 
-  // Mesure dynamique de la hauteur du header -> CSS var --header-h
-  useEffect(() => {
-    const setHeaderVar = () => {
-      const header = document.querySelector('.main-header');
-      if (!header) return;
-      const h = header.offsetHeight || 64;
-      document.documentElement.style.setProperty('--header-h', `${h}px`);
-    };
-    setHeaderVar();
-    const headerEl = document.querySelector('.main-header');
-    const ro = headerEl ? new ResizeObserver(setHeaderVar) : null;
-    if (ro && headerEl) ro.observe(headerEl);
-    window.addEventListener('resize', setHeaderVar);
-    return () => {
-      window.removeEventListener('resize', setHeaderVar);
-      if (ro) ro.disconnect();
-    };
-  }, []);
-
-  // replie le header dès qu’on descend un peu
   const [headerCollapsed, setHeaderCollapsed] = useState(false);
   useEffect(() => {
     const onScroll = () => {
@@ -206,7 +176,6 @@ function MainApp() {
 
   const detailRef = useRef(null);
 
-  // détecte mobile
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 768px)');
@@ -218,34 +187,30 @@ function MainApp() {
     };
   }, []);
 
-  // scroll utilitaire (offset = header)
   const scrollDetailToTopMobile = () => {
     if (!isMobile) return;
     const el = detailRef.current;
     if (!el) return;
-
     let offset = 0;
     const header = document.querySelector('.main-header');
     if (header) {
       const pos = getComputedStyle(header).position;
-      if (pos === 'fixed' || 'sticky') offset = header.offsetHeight;
+      if (pos === 'fixed' || pos === 'sticky') offset = header.offsetHeight;
     }
     const y = Math.max(0, Math.floor(el.getBoundingClientRect().top + window.pageYOffset - offset));
     window.scrollTo({ top: y, behavior: 'smooth' });
   };
 
-  /* 🔧 Scroll précis pour “Bienvenue” (le contenu est dans la 1re colonne mobile) */
   const scrollBienvenueToTop = () => {
     if (!isMobile) return;
     const header = document.querySelector('.main-header');
-    const container = document.querySelector('.section-row'); // bloc qui contient le titre “L’ATELIER”
+    const container = document.querySelector('.section-row');
     if (!container) return;
     const offset = header ? header.offsetHeight : 0;
     const y = Math.max(0, Math.floor(container.getBoundingClientRect().top + window.pageYOffset - offset));
     window.scrollTo({ top: y, behavior: 'smooth' });
   };
 
-  // 🔁 Scroll “anti-raté” pour Boutique
   const forceScrollToDetail = (maxRetries = 6, delayMs = 90) => {
     let tries = 0;
     const tick = () => {
@@ -257,34 +222,27 @@ function MainApp() {
     requestAnimationFrame(() => requestAnimationFrame(tick));
   };
 
-  // ✅ Collapse + scroll vers "Notre histoire" (mobile)
   const collapseAndScrollToNotreHistoire = () => {
     if (!isMobile) return;
-
     const header = document.querySelector('.main-header');
     const logo = header?.querySelector('.logo-image');
     const target = document.getElementById('btn-notre-histoire');
     if (!target) return;
-
     const doScroll = () => {
       const offset = header ? header.offsetHeight : 0;
       const y = Math.floor(target.getBoundingClientRect().top + window.pageYOffset - offset - 4);
       window.scrollTo({ top: y, behavior: 'smooth' });
     };
-
     setHeaderCollapsed(true);
-
     if (headerCollapsed) {
       requestAnimationFrame(() => requestAnimationFrame(doScroll));
       return;
     }
-
     const waitEl = logo || header;
     if (!waitEl) {
       setTimeout(doScroll, 260);
       return;
     }
-
     let done = false;
     const finish = () => {
       if (done) return;
@@ -292,7 +250,6 @@ function MainApp() {
       waitEl.removeEventListener('transitionend', finish);
       requestAnimationFrame(() => requestAnimationFrame(doScroll));
     };
-
     const cs = getComputedStyle(waitEl);
     const durStr = (cs.transitionDuration || '0s').split(',')[0].trim();
     const delStr = (cs.transitionDelay || '0s').split(',')[0].trim();
@@ -302,41 +259,31 @@ function MainApp() {
       finish();
       return;
     }
-
     waitEl.addEventListener('transitionend', finish);
     setTimeout(finish, durMs + delMs + 80);
   };
 
-  // 👉 Scroll fiable vers Boutique
   useEffect(() => {
     if (!isMobile) return;
     if (selectedConcept !== 'Boutique') return;
     forceScrollToDetail(7, 100);
   }, [selectedConcept, isMobile, refreshBoutique]);
 
-  // 👉 Mode overlay pour Notre histoire (mobile uniquement)
   useEffect(() => {
     if (!isMobile) return;
     const panel = document.querySelector('#detail-panel');
     if (!panel) return;
-
     panel.classList.remove('story-overlay-mode');
     const previousCover = panel.querySelector('.chapter-cover');
     if (previousCover) previousCover.classList.remove('chapter-cover');
-
     if (selectedConcept !== 'Notre histoire') return;
-
     panel.classList.add('story-overlay-mode');
-
     const img =
       panel.querySelector('.section-panel.story-panel img') ||
       panel.querySelector('.story-fullheight img') ||
       panel.querySelector('img');
-
     if (img) img.classList.add('chapter-cover');
-
     requestAnimationFrame(() => requestAnimationFrame(scrollDetailToTopMobile));
-
     return () => {
       panel.classList.remove('story-overlay-mode');
       const cover = panel.querySelector('.chapter-cover');
@@ -348,12 +295,10 @@ function MainApp() {
     const concept = concepts.find(c => c.label === key);
     if (concept) setConceptDetails(concept.detail);
     else if (staticLinks[key]) setConceptDetails(staticLinks[key]);
-
     setSelectedConcept(key);
     setActiveLink(key);
     setFilter('all');
     setSelectedCategory('toutes');
-
     if (key === 'Boutique') {
       setRefreshBoutique(true);
       setTimeout(() => setRefreshBoutique(false), 50);
@@ -411,62 +356,37 @@ function MainApp() {
     selectedConcept === 'Notre histoire' ? 'Apprenez-en plus sur l’histoire et la mission de notre atelier.' :
     'Atelier Dentelles & Costumes – Créations uniques et personnalisées.';
 
-  // NE PAS rendre le panneau détail si on est en mobile sur "Bienvenue"
   const showDetailPanel = !(isMobile && selectedConcept === 'Bienvenue');
-
-  /* ===== JSON-LD : déclare M4TT3R comme créateur du site ===== */
-  const websiteJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "Atelier Dentelles & Costumes",
-    "url": "https://atelierdentellesetcostumes.fr/", // ← mets l’URL canonique de l’atelier
-    "creator": {
-      "@type": "Organization",
-      "name": "M4TT3R",
-      "url": "https://m4tt3r.com",
-      "logo": "https://atelierdentellesetcostumes.fr/images/M4TT3R-logo.png" // ou https://m4tt3r.com/… si hébergé chez M4TT3R
-    },
-    "copyrightHolder": {
-      "@type": "Organization",
-      "name": "M4TT3R",
-      "url": "https://m4tt3r.com"
-    }
-  };
-
-  /* (Optionnel) JSON-LD Organization pour l’atelier */
-  const orgJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "Atelier Dentelles & Costumes",
-    "url": "https://atelierdentellesetcostumes.fr/",
-    "logo": "https://atelierdentellesetcostumes.fr/images/Logo-light.png", // 🔁 de préférence PNG/JPG ≥112x112
-    "sameAs": [
-      "https://www.instagram.com/atelier_dentelles_et_costumes/",
-      "https://www.facebook.com/share/15pUDc96q9/"
-    ]
-  };
 
   return (
     <div className="app-wrapper">
       <Helmet>
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />
-        <meta name="author" content="M4TT3R (m4tt3r.com)" />
-
-        {/* Open Graph (réseaux sociaux) */}
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={pageDescription} />
         <meta property="og:image" content="/images/Logo-light.svg" />
         <meta property="og:type" content="website" />
 
-        {/* JSON-LD : WebSite avec créateur M4TT3R */}
+        {/* ✅ JSON-LD pour référencer M4TT3R comme créateur */}
         <script type="application/ld+json">
-          {JSON.stringify(websiteJsonLd)}
-        </script>
-
-        {/* JSON-LD : Organization de l’atelier (cohérence logo+réseaux) */}
-        <script type="application/ld+json">
-          {JSON.stringify(orgJsonLd)}
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "Atelier Dentelles & Costumes",
+            "url": "https://atelierdentellesetcostumes.fr/",
+            "creator": {
+              "@type": "Organization",
+              "name": "M4TT3R",
+              "url": "https://m4tt3r.com",
+              "logo": "https://atelierdentellesetcostumes.fr/images/M4TT3R-logo.png"
+            },
+            "copyrightHolder": {
+              "@type": "Organization",
+              "name": "M4TT3R",
+              "url": "https://m4tt3r.com"
+            }
+          })}
         </script>
       </Helmet>
 
@@ -534,7 +454,6 @@ function MainApp() {
         </div>
       </div>
 
-      {/* === BARRE LÉGALE indépendante === */}
       <div className={`legal-bar ${showLegalBar ? 'visible' : ''}`}>
         <button className="clickable" onClick={() => setShowPrivacy(true)}>
           Politiques de confidentialité
@@ -544,7 +463,6 @@ function MainApp() {
         </a>
       </div>
 
-      {/* === POPUP POLITIQUES via composant === */}
       <PrivacyPolicyModal
         open={showPrivacy}
         onClose={() => setShowPrivacy(false)}
