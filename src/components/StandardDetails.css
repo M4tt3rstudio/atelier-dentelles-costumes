@@ -142,3 +142,20 @@
   }
 }
 
+/* active la césure automatique (tiret) sur les titres */
+.sd-title.hyphenate {
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  -ms-hyphens: auto;
+  word-break: normal;
+  overflow-wrap: anywhere; /* mieux sur mobile quand l’espace manque */
+}
+
+/* tu peux cibler le mobile si tu veux limiter l'effet */
+@media (max-width: 768px) {
+  .sd-title.hyphenate {
+    hyphens: auto;
+    -webkit-hyphens: auto;
+    -ms-hyphens: auto;
+  }
+}

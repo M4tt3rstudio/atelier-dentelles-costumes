@@ -22,8 +22,8 @@ export default function StandardDetails({ content, conceptKey }) {
       ref={wrapperRef}
     >
       <div className="section-title sticky-title title-with-button">
-        {/* ✅ supprimé "Détail -" */}
-        <h2>{conceptKey}</h2>
+        {/* ✅ titre simple ; lang=fr pour bonne césure */}
+        <h2 className="sd-title hyphenate" lang="fr">{conceptKey}</h2>
         {conceptsWithForm.includes(conceptKey) && (
           <button className="clickable form-toggle-button" onClick={toggleForm}>
             {showForm ? 'Masquer le formulaire' : 'Afficher le formulaire'}

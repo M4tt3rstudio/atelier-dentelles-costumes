@@ -393,7 +393,6 @@ function MainApp() {
           </div>
         );
       default:
-        // ✅ pas de suffixe "detail" — on affiche le nom du concept
         return <StandardDetails key={selectedConcept} content={conceptDetails} conceptKey={selectedConcept} />;
     }
   };
@@ -415,7 +414,6 @@ function MainApp() {
     selectedConcept === 'Notre histoire' ? 'Apprenez-en plus sur l’histoire et la mission de notre atelier.' :
     'Atelier Dentelles & Costumes – Créations uniques et personnalisées.';
 
-  // NE PAS rendre le panneau détail si on est en mobile sur "Bienvenue"
   const showDetailPanel = !(isMobile && selectedConcept === 'Bienvenue');
 
   // ===== JSON-LD : déclare M4TT3R comme créateur du site =====
@@ -423,7 +421,7 @@ function MainApp() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     "name": "Atelier Dentelles & Costumes",
-    "url": "https://atelierdentellesetcostumes.fr/", // ← mets l’URL canonique de l’atelier
+    "url": "https://atelierdentellesetcostumes.fr/",
     "creator": {
       "@type": "Organization",
       "name": "M4TT3R",
@@ -437,7 +435,6 @@ function MainApp() {
     }
   };
 
-  // (Optionnel) JSON-LD Organization pour l’atelier
   const orgJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
