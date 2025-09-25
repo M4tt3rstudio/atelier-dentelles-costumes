@@ -3,6 +3,7 @@ import ConceptForm from './ConceptForm';
 import AdvancedCalendar from './AdvancedCalendar';
 import './StandardDetails.css';
 import AvailabilityDebugger from './AvailabilityDebugger';
+
 export default function StandardDetails({ content, conceptKey }) {
   const [showForm, setShowForm] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(null);
@@ -21,7 +22,8 @@ export default function StandardDetails({ content, conceptKey }) {
       ref={wrapperRef}
     >
       <div className="section-title sticky-title title-with-button">
-        <h2>{`Détail - ${conceptKey}`}</h2>
+        {/* ✅ supprimé "Détail -" */}
+        <h2>{conceptKey}</h2>
         {conceptsWithForm.includes(conceptKey) && (
           <button className="clickable form-toggle-button" onClick={toggleForm}>
             {showForm ? 'Masquer le formulaire' : 'Afficher le formulaire'}
@@ -31,14 +33,19 @@ export default function StandardDetails({ content, conceptKey }) {
 
       {showForm ? (
         <>
-          <ConceptForm
-            conceptKey={conceptKey}
-          />
+          <ConceptForm conceptKey={conceptKey} />
         </>
       ) : (
         <>
           {content.video && (
-            <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', marginBottom: '1rem' }}>
+            <div
+              style={{
+                position: 'relative',
+                width: '100%',
+                paddingTop: '56.25%',
+                marginBottom: '1rem'
+              }}
+            >
               <video
                 autoPlay
                 muted
@@ -50,7 +57,7 @@ export default function StandardDetails({ content, conceptKey }) {
                   left: 0,
                   width: '100%',
                   height: '100%',
-                  objectFit: 'cover',
+                  objectFit: 'cover'
                 }}
               >
                 <source src={`/videos/${content.video}`} type="video/mp4" />
@@ -66,7 +73,7 @@ export default function StandardDetails({ content, conceptKey }) {
                   style={{
                     gridColumn: i % 3 === 1 ? 'span 2' : 'span 1',
                     aspectRatio: i % 3 === 1 ? '16 / 9' : '1 / 1',
-                    width: '100%',
+                    width: '100%'
                   }}
                 >
                   <img
@@ -76,7 +83,7 @@ export default function StandardDetails({ content, conceptKey }) {
                       width: '100%',
                       height: '100%',
                       borderRadius: '0.5rem',
-                      objectFit: 'cover',
+                      objectFit: 'cover'
                     }}
                   />
                 </div>

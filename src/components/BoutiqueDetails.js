@@ -32,16 +32,16 @@ export default function BoutiqueDetails({
     if (error) {
       console.error("Erreur chargement articles :", error);
     } else {
-      setArticles(data);
+      setArticles(data || []);
     }
   };
 
   const categories = [
     'toutes',
-    ...Array.from(new Set(articles.map(item => item.categorie).filter(Boolean)))
+    ...Array.from(new Set((articles || []).map(item => item.categorie).filter(Boolean)))
   ];
 
-  const filteredArticles = articles.filter(item => {
+  const filteredArticles = (articles || []).filter(item => {
     const matchType = filter === 'all' || item.type === filter;
     const matchCat = selectedCategory === 'toutes' || item.categorie === selectedCategory;
     return matchType && matchCat;
@@ -50,7 +50,8 @@ export default function BoutiqueDetails({
   return (
     <div className="section-panel">
       <div className="section-title sticky-title">
-        <h2>Détail - Boutique</h2>
+        {/* ✅ supprimé "Détail -" */}
+        <h2>Boutique</h2>
       </div>
 
       <div className="boutique-controls">
