@@ -1,20 +1,35 @@
 import React, { useState, useRef } from 'react';
 import ConceptForm from './ConceptForm';
-import AdvancedCalendar from './AdvancedCalendar';
 import './StandardDetails.css';
-import AvailabilityDebugger from './AvailabilityDebugger';
 
 export default function StandardDetails({ content, conceptKey }) {
   const [showForm, setShowForm] = useState(false);
-  const [selectedSlot, setSelectedSlot] = useState(null);
   const wrapperRef = useRef(null);
 
   const conceptsWithForm = ['Dépôt-Vente', 'Retouches & Création'];
 
   const toggleForm = () => {
     setShowForm((prev) => !prev);
-    setSelectedSlot(null); // reset slot à l’ouverture/fermeture
   };
+
+  // --- Définition des libellés pour chaque concept ---
+  const getCta = () => {
+    if (conceptKey === 'Dépôt-Vente') {
+      return {
+        title: 'Planifier votre visite',
+        subtitle: 'et nous transmettre vos pièces dès aujourd’hui',
+      };
+    }
+    if (conceptKey === 'Retouches & Création') {
+      return {
+        title: 'Planifier un rendez-vous',
+        subtitle: 'et déposer photos, mesures et inspirations',
+      };
+    }
+    return { title: 'Planifier votre visite', subtitle: '' };
+  };
+
+  const { title, subtitle } = getCta();
 
   return (
     <div
@@ -22,19 +37,31 @@ export default function StandardDetails({ content, conceptKey }) {
       ref={wrapperRef}
     >
       <div className="section-title sticky-title title-with-button">
-        {/* ✅ titre simple ; lang=fr pour bonne césure */}
         <h2 className="sd-title hyphenate" lang="fr">{conceptKey}</h2>
+
         {conceptsWithForm.includes(conceptKey) && (
-          <button className="clickable form-toggle-button" onClick={toggleForm}>
-            {showForm ? 'Masquer le formulaire' : 'Afficher le formulaire'}
+          <button
+            className={`form-toggle-button ${showForm ? 'active' : ''}`}
+            onClick={toggleForm}
+            aria-label={`${title}${subtitle ? ' — ' + subtitle : ''}`}
+          >
+            {!showForm ? (
+              <>
+                <span className="cta-title">{title}</span>
+                {subtitle && <span className="cta-sub">{subtitle}</span>}
+              </>
+            ) : (
+              <>
+                <span className="cta-title">Fermer la prise de rendez-vous</span>
+                <span className="cta-sub">revenir à la présentation</span>
+              </>
+            )}
           </button>
         )}
       </div>
 
       {showForm ? (
-        <>
-          <ConceptForm conceptKey={conceptKey} />
-        </>
+        <ConceptForm conceptKey={conceptKey} />
       ) : (
         <>
           {content.video && (
@@ -43,7 +70,7 @@ export default function StandardDetails({ content, conceptKey }) {
                 position: 'relative',
                 width: '100%',
                 paddingTop: '56.25%',
-                marginBottom: '1rem'
+                marginBottom: '1rem',
               }}
             >
               <video
@@ -57,7 +84,7 @@ export default function StandardDetails({ content, conceptKey }) {
                   left: 0,
                   width: '100%',
                   height: '100%',
-                  objectFit: 'cover'
+                  objectFit: 'cover',
                 }}
               >
                 <source src={`/videos/${content.video}`} type="video/mp4" />
@@ -65,7 +92,7 @@ export default function StandardDetails({ content, conceptKey }) {
             </div>
           )}
 
-          {content.images && content.images.length > 0 && (
+          {content.images?.length > 0 && (
             <div className="bento-gallery">
               {content.images.map((img, i) => (
                 <div
@@ -73,7 +100,7 @@ export default function StandardDetails({ content, conceptKey }) {
                   style={{
                     gridColumn: i % 3 === 1 ? 'span 2' : 'span 1',
                     aspectRatio: i % 3 === 1 ? '16 / 9' : '1 / 1',
-                    width: '100%'
+                    width: '100%',
                   }}
                 >
                   <img
@@ -83,7 +110,7 @@ export default function StandardDetails({ content, conceptKey }) {
                       width: '100%',
                       height: '100%',
                       borderRadius: '0.5rem',
-                      objectFit: 'cover'
+                      objectFit: 'cover',
                     }}
                   />
                 </div>

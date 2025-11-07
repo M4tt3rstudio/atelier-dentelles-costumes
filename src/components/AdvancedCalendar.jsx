@@ -4,26 +4,77 @@ import './AdvancedCalendar.css';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 
-export default function AdvancedCalendar({ selectedDate, setSelectedDate, selectedHour, setSelectedHour }) {
+dayjs.locale('fr');
+
+export default function AdvancedCalendar({
+  selectedDate,
+  setSelectedDate,
+  selectedHour,
+  setSelectedHour,
+  lastBooked
+}) {
   const [currentMonth, setCurrentMonth] = useState(dayjs().startOf('month'));
   const [availableHours, setAvailableHours] = useState([]);
   const [selectedDay, setSelectedDay] = useState(selectedDate || null);
 
+  // Charge les créneaux quand le jour change
   useEffect(() => {
-    if (selectedDay) {
-      fetchAvailableHours(selectedDay);
-    }
+    if (selectedDay) fetchAvailableHours(selectedDay);
   }, [selectedDay]);
 
+  // Synchronise date externe
   useEffect(() => {
-    // Synchronise le jour sélectionné depuis les props si ça vient de l'extérieur
     if (selectedDate && !dayjs(selectedDate).isSame(selectedDay, 'day')) {
       setSelectedDay(selectedDate);
     }
   }, [selectedDate]);
 
-  const fetchAvailableHours = async (date) => {
-    const weekday = (date.getDay() + 6) % 7; // Lundi = 0
+  // Realtime Supabase
+  useEffect(() => {
+    const channel = supabase
+      .channel('reservations-watch')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reservations' }, (payload) => {
+        if (!selectedDay) return;
+        const d = dayjs(selectedDay).format('YYYY-MM-DD');
+        const changed = payload.new?.date || payload.old?.date;
+        if (changed === d) fetchAvailableHours(selectedDay);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [selectedDay]);
+
+  // Événement local → retrait instantané du slot
+  useEffect(() => {
+    const toHHMM = (str) => (str ? String(str).trim().slice(0,5) : '');
+    const handler = (e) => {
+      if (!selectedDay) return;
+      const d = dayjs(selectedDay).format('YYYY-MM-DD');
+      const changedDate = e.detail?.date;
+      const changedHour = toHHMM(e.detail?.hour);
+      if (changedDate !== d) return;
+
+      if (changedHour) {
+        setAvailableHours(prev => prev.filter(h => toHHMM(h) !== changedHour));
+      } else {
+        fetchAvailableHours(selectedDay);
+      }
+    };
+    window.addEventListener('reservation:created', handler);
+    return () => window.removeEventListener('reservation:created', handler);
+  }, [selectedDay]);
+
+  // Retrait immédiat si parent a passé lastBooked
+  useEffect(() => {
+    if (!lastBooked || !selectedDay) return;
+    const d = dayjs(selectedDay).format('YYYY-MM-DD');
+    if (lastBooked.date !== d) return;
+    const hour = String(lastBooked.hour).slice(0, 5);
+    setAvailableHours(prev => prev.filter(h => h.slice(0, 5) !== hour));
+  }, [lastBooked, selectedDay]);
+
+  const fetchAvailableHours = async (dateObj) => {
+    const weekday = (dateObj.getDay() + 6) % 7; // Lundi = 0
+
     const { data, error } = await supabase
       .from('availability')
       .select('*')
@@ -35,31 +86,31 @@ export default function AdvancedCalendar({ selectedDate, setSelectedDate, select
       return;
     }
 
-    const generateSlots = (startStr, endStr) => {
-      const slots = [];
-      const [sh, sm] = startStr.split(':').map(Number);
-      const [eh, em] = endStr.split(':').map(Number);
-      let current = sh + sm / 60;
-      const end = eh + em / 60;
-
-      while (current < end) {
-        const hours = Math.floor(current);
-        const minutes = (current % 1) * 60;
-        slots.push(`${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`);
-        current += 0.5;
+    const gen = (start, end) => {
+      const out = [];
+      const [sh, sm] = start.split(':').map(Number);
+      const [eh, em] = end.split(':').map(Number);
+      let cur = sh + (sm || 0) / 60;
+      const stop = eh + (em || 0) / 60;
+      while (cur < stop) {
+        const h = Math.floor(cur);
+        const m = (cur % 1) * 60;
+        out.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+        cur += 0.5;
       }
-      return slots;
+      return out;
     };
 
     let slots = [];
-    if (data.morning_start && data.morning_end) {
-      slots = [...slots, ...generateSlots(data.morning_start, data.morning_end)];
-    }
-    if (data.afternoon_start && data.afternoon_end) {
-      slots = [...slots, ...generateSlots(data.afternoon_start, data.afternoon_end)];
-    }
+    if (data.morning_start && data.morning_end) slots.push(...gen(data.morning_start, data.morning_end));
+    if (data.afternoon_start && data.afternoon_end) slots.push(...gen(data.afternoon_start, data.afternoon_end));
+    slots = slots.map(s => s.slice(0,5));
 
-    setAvailableHours(slots);
+    const dayISO = dayjs(dateObj).format('YYYY-MM-DD');
+    const { data: resv } = await supabase.from('reservations').select('hour').eq('date', dayISO);
+    const taken = new Set((resv || []).map(r => String(r.hour).trim().slice(0,5)));
+    const free = slots.filter(h => !taken.has(h));
+    setAvailableHours(free);
   };
 
   const daysInMonth = Array.from({ length: currentMonth.daysInMonth() }, (_, i) =>
@@ -68,13 +119,13 @@ export default function AdvancedCalendar({ selectedDate, setSelectedDate, select
 
   const handleDayClick = (day) => {
     setSelectedDay(day);
-    setSelectedDate(day);         // ✅ synchronise avec ConceptForm
-    setSelectedHour(null);        // 🔁 reset l’heure quand le jour change
+    setSelectedDate(day);
+    setSelectedHour(null);
   };
 
   const handleHourClick = (hour) => {
     if (!selectedDay) return;
-    setSelectedHour(hour);        // ✅ synchronise avec ConceptForm
+    setSelectedHour(hour);
   };
 
   return (
